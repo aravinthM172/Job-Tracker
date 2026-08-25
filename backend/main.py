@@ -18,6 +18,7 @@ from email.utils import parsedate_to_datetime
 import base64
 import html as html_entities
 import json
+import os
 import re
 import requests
 import threading
@@ -75,7 +76,11 @@ app.add_middleware(
 )
 
 BASE_DIR = Path(__file__).resolve().parent
-TOKEN_DIR = BASE_DIR / "tokens"
+# Same DATA_DIR as db.py (see db.py) - keeps OAuth tokens on the same
+# persistent volume as the DB in a deployed container.
+DATA_DIR = Path(os.getenv("DATA_DIR", str(BASE_DIR)))
+TOKEN_DIR = DATA_DIR / "tokens"
+TOKEN_DIR.mkdir(parents=True, exist_ok=True)
 
 OUTLOOK_TOKEN = TOKEN_DIR / "outlook_1.json"
 
@@ -1994,3 +1999,31 @@ def sync_status():
             **AUTO_SYNC_STATE,
         },
     }
+
+
+# ============================================================
+# FRONTEND (built React app) - only present in the deployed
+# container, where the Dockerfile builds frontend/dist and this
+# process serves it alongside the API on the same port. Registered
+# last so every API route above still takes priority; not mounted at
+# all in local dev (no dist/ there), where the Vite dev server on
+# :5173 serves the frontend instead.
+# ============================================================
+
+FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+
+if FRONTEND_DIST.exists():
+    from fastapi.responses import FileResponse
+
+    @app.get("/{full_path:path}")
+    async def serve_frontend(full_path: str):
+        # Any real built asset (JS/CSS bundle, favicon, ...) is served
+        # directly; everything else is a React Router client-side
+        # route (e.g. /applications) - not a real file - so fall back
+        # to index.html and let the SPA router handle it.
+        candidate = FRONTEND_DIST / full_path
+
+        if full_path and candidate.is_file():
+            return FileResponse(candidate)
+
+        return FileResponse(FRONTEND_DIST / "index.html")

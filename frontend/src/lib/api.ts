@@ -2,13 +2,15 @@
 // response shapes returned by backend/main.py + backend/db.py exactly -
 // nothing here is invented; every field is one the backend actually sends.
 
-// Defaults to whatever host the page itself was loaded from (with the
-// backend's port) instead of a hardcoded 127.0.0.1 - that way the same
-// build works both from localhost and from a phone hitting the PC's
-// Tailscale IP/hostname, with no per-device config.
+// In dev (Vite dev server on :5173), the backend is a separate
+// process on :8000 - default to whatever host the page loaded from
+// so this also works from a phone hitting the PC's Tailscale IP. In
+// a production build, main.py serves the built frontend itself, so
+// the API is same-origin - "" makes fetch() resolve relative to the
+// page's own URL instead of assuming a :8000 backend exists.
 export const API_BASE =
-  (import.meta.env.VITE_API_URL as string | undefined) ||
-  `http://${window.location.hostname}:8000`;
+  (import.meta.env.VITE_API_URL as string | undefined) ??
+  (import.meta.env.DEV ? `http://${window.location.hostname}:8000` : "");
 
 export type JobStatus =
   | "applied"

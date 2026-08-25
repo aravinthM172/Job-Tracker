@@ -1,8 +1,7 @@
 """
 Persistence layer for the Job Application Tracker.
 
-Backed by SQLite via SQLAlchemy, using the same ORM pattern already
-used elsewhere in this backend (see email_sync.py). Two tables:
+Backed by SQLite via SQLAlchemy. Two tables:
 
 - Job:       one row per real-world job application (company + role).
 - JobEvent:  one row per matched email (application received, interview,
@@ -11,6 +10,7 @@ used elsewhere in this backend (see email_sync.py). Two tables:
              creating duplicate applications.
 """
 
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -27,7 +27,14 @@ from sqlalchemy.orm import declarative_base, sessionmaker, relationship
 
 BASE_DIR = Path(__file__).resolve().parent
 
-DATABASE_URL = f"sqlite:///{BASE_DIR / 'job_tracker.sqlite3'}"
+# DATA_DIR lets deployment point the DB (and, in main.py, the OAuth
+# token files) at a mounted persistent volume - e.g. /data in the
+# Docker image - instead of the backend/ source directory. Defaults
+# to BASE_DIR so local dev is unaffected.
+DATA_DIR = Path(os.getenv("DATA_DIR", str(BASE_DIR)))
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+DATABASE_URL = f"sqlite:///{DATA_DIR / 'job_tracker.sqlite3'}"
 
 engine = create_engine(
     DATABASE_URL,
