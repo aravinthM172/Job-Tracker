@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+sqlalchemy
+pydantic
+python-multipart
+beautifulsoup4
+requests
+google-auth
+google-auth-oauthlib
+google-api-python-client
