@@ -1665,7 +1665,7 @@ def perform_sync(trigger="manual"):
 # running this often cheap instead of re-scanning everything each
 # time.
 
-AUTO_SYNC_INTERVAL_SECONDS = 10 * 60
+AUTO_SYNC_INTERVAL_SECONDS = 5 * 60
 
 AUTO_SYNC_STATE = {
     "last_run_at": None,
