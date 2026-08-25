@@ -10,7 +10,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse
+from fastapi.responses import RedirectResponse, Response
 from pydantic import BaseModel
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
@@ -21,6 +21,7 @@ import json
 import os
 import re
 import requests
+import secrets
 import threading
 import time
 import traceback
@@ -74,6 +75,41 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# HTTP Basic Auth gate in front of the whole app - this holds job
+# search emails/companies and a public /sync trigger, so a deployment
+# reachable on the open internet (unlike localhost/Tailscale-only use)
+# needs *something* in front of it. No-ops when BASIC_AUTH_USER/PASS
+# aren't set (local dev, Tailscale-only use) so neither is ever
+# required to run the app locally.
+BASIC_AUTH_USER = os.getenv("BASIC_AUTH_USER")
+BASIC_AUTH_PASS = os.getenv("BASIC_AUTH_PASS")
+
+
+@app.middleware("http")
+async def basic_auth(request: Request, call_next):
+    if not BASIC_AUTH_USER or not BASIC_AUTH_PASS:
+        return await call_next(request)
+
+    auth_header = request.headers.get("authorization", "")
+    scheme, _, credentials = auth_header.partition(" ")
+
+    if scheme.lower() == "basic":
+        try:
+            decoded = base64.b64decode(credentials).decode("utf-8")
+            user, _, password = decoded.partition(":")
+        except Exception:
+            user, password = "", ""
+
+        if secrets.compare_digest(user, BASIC_AUTH_USER) and secrets.compare_digest(
+            password, BASIC_AUTH_PASS
+        ):
+            return await call_next(request)
+
+    return Response(
+        status_code=401,
+        headers={"WWW-Authenticate": 'Basic realm="Job Tracker"'},
+    )
 
 BASE_DIR = Path(__file__).resolve().parent
 # Same DATA_DIR as db.py (see db.py) - keeps OAuth tokens on the same
