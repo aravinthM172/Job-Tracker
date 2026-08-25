@@ -1836,17 +1836,6 @@ def jobs_summary():
 # HEALTH
 # ============================================================
 
-@app.get("/")
-def home():
-
-    return {
-        "status": "healthy",
-        "service": "Job Application Tracker",
-        "accounts": {
-            "gmail": 4,
-            "outlook": 1,
-        },
-    }
 
 
 @app.get("/health")
