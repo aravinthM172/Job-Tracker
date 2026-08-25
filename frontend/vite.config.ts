@@ -6,7 +6,10 @@ import { defineConfig } from 'vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    host: '127.0.0.1',
+    // 0.0.0.0 (not 127.0.0.1) so the dev server also accepts
+    // connections from other devices on the Tailscale network, e.g.
+    // a phone hitting this PC's Tailscale IP.
+    host: '0.0.0.0',
     port: 5173,
   },
 })

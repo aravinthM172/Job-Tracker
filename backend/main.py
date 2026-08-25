@@ -57,10 +57,18 @@ app = FastAPI(title="Job Application Tracker", lifespan=lifespan)
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-    ],
+    # Regex (not a fixed allow_origins list) so the dashboard also
+    # works over Tailscale - its device IP (100.64.0.0/10 CGNAT
+    # range) and MagicDNS hostname (*.ts.net) aren't known ahead of
+    # time the way localhost is.
+    allow_origin_regex=(
+        r"^http://("
+        r"localhost"
+        r"|127\.0\.0\.1"
+        r"|100\.\d{1,3}\.\d{1,3}\.\d{1,3}"
+        r"|[\w-]+\.[\w-]+\.ts\.net"
+        r"):5173$"
+    ),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -236,6 +244,16 @@ OFFER_PATTERNS = [
     r"\bwe are delighted to offer\b",
 ]
 
+# Legal disclaimer boilerplate some ATSes (e.g. Wells Fargo/Workday)
+# append to every plain "we received your application" email - e.g.
+# "This email is not an offer of employment." Without this guard,
+# OFFER_PATTERNS' "offer of employment" match fires on the negation
+# and misclassifies a routine application-received email as an offer.
+OFFER_NEGATION_PATTERNS = [
+    r"\bnot (?:an? )?(?:formal )?offer of employment\b",
+    r"\bdoes not constitute (?:an? )?(?:formal )?offer\b",
+]
+
 
 def contains_pattern(text, patterns):
     text = normalize(text)
@@ -251,7 +269,9 @@ def classify_email(subject="", body=""):
     text = f"{subject} {body}"
 
     # Highest priority first
-    if contains_pattern(text, OFFER_PATTERNS):
+    if contains_pattern(text, OFFER_PATTERNS) and not contains_pattern(
+        text, OFFER_NEGATION_PATTERNS
+    ):
         return "offer"
 
     if contains_pattern(text, REJECTION_PATTERNS):
