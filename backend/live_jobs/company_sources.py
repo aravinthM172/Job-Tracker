@@ -65,6 +65,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Roblox": [("greenhouse", "roblox")],
     "Roku": [("greenhouse", "roku")],
     "Twitch": [("greenhouse", "twitch")],
+    "Razorpay": [("greenhouse", "razorpaysoftwareprivatelimited")],
     # -- Lever -----------------------------------------------------
     "CRED": [("lever", "cred")],
     "Meesho": [("lever", "meesho")],
@@ -111,6 +112,11 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Deutsche Bank": [("workday", "db/wd3/DBWebsite")],
     "Wells Fargo": [("workday", "wf/wd1/WellsFargoJobs")],
     "Target": [("workday", "target/wd5/targetcareers")],
+    "PwC": [("workday", "pwc/wd3/Global_Experienced_Careers")],
+    # -- Oracle Cloud Recruiting (token = "host|site") -------------
+    "KPMG Global Services": [
+        ("oracle", "ejgk.fa.em2.oraclecloud.com|CX_3")
+    ],
     # -- Per-company adapters ----------------------------------------
     "Amazon": [("amazon", "")],
 }

@@ -1,0 +1,33 @@
+{
+  "items": [
+    {
+      "TotalJobsCount": 698,
+      "requisitionList": [
+        {
+          "Id": "30037089",
+          "Title": "Assistant Manager (IC) - Cloud Tx - BD / Presales",
+          "PrimaryLocation": "Gurgaon, Haryana, India",
+          "PostedDate": "2026-09-01",
+          "JobFunction": null,
+          "WorkplaceType": ""
+        },
+        {
+          "Id": "30038221",
+          "Title": "Assistant Manager",
+          "PrimaryLocation": "Bangalore, Karnataka, India",
+          "PostedDate": "2026-09-01",
+          "JobFunction": null,
+          "WorkplaceType": ""
+        },
+        {
+          "Id": "30041154",
+          "Title": "Manager - IPS - Gurugram",
+          "PrimaryLocation": "Gurgaon, Haryana, India",
+          "PostedDate": "2026-09-01",
+          "JobFunction": null,
+          "WorkplaceType": ""
+        }
+      ]
+    }
+  ]
+}
