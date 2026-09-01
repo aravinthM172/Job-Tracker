@@ -25,8 +25,10 @@ from .normalize import (
     fallback_external_id,
     parse_posted_at,
 )
+from datetime import datetime, timedelta
+
 from .service import find_live_job, live_job_cutoff, upsert_live_job
-from .sources import HEAVY_SOURCES, SOURCES
+from .sources import DATELESS_SOURCES, HEAVY_SOURCES, SOURCES
 
 _MAX_WORKERS = 10
 _BUDGET_SECONDS = 150
@@ -62,12 +64,18 @@ def _ingest(db: Session, batch: list, cutoff, locations, counts: dict) -> None:
 
         title = clean_title(job.title)
         posted_at = parse_posted_at(job.posted_at)
+        dateless = job.source in DATELESS_SOURCES
 
-        if not title or posted_at is None:
+        if not title or (posted_at is None and not dateless):
             counts["skipped_invalid"] += 1
             continue
 
-        if posted_at < cutoff:
+        if dateless:
+            # no trustworthy post date - keep every open req in-window
+            # and let the not-seen sweep retire it later
+            if posted_at is None or posted_at < cutoff:
+                posted_at = datetime.utcnow() - timedelta(hours=12)
+        elif posted_at < cutoff:
             counts["skipped_old"] += 1
             continue
 

@@ -119,5 +119,6 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     ],
     # -- Per-company adapters ----------------------------------------
     "Amazon": [("amazon", "")],
+    "Swiggy": [("swiggy", "")],
 }
 

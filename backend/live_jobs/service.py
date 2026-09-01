@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.orm import Session
 
 from .models import LiveJob
@@ -28,6 +28,11 @@ REPOST_BADGE_HOURS = 48
 # small on a space-constrained box (a job seeker never needs week-old
 # expired postings).
 PURGE_AFTER_DAYS = 7
+
+# An active job not seen in any discovery run for this long has dropped
+# off its source feed - close it. (Heavy feeds refresh ~every 20 min, so
+# 36h is many missed cycles.)
+NOT_SEEN_CLOSE_HOURS = 36
 
 
 def utcnow() -> datetime:
@@ -143,14 +148,20 @@ def upsert_live_job(
 
 
 def close_old_jobs(db: Session) -> int:
-    """Flip jobs whose posted_at fell outside the 48h window to CLOSED."""
-    cutoff = live_job_cutoff()
+    """Retire jobs that aged past the 48h window or dropped off their feed."""
+    window_cutoff = live_job_cutoff()
+    seen_cutoff = utcnow() - timedelta(hours=NOT_SEEN_CLOSE_HOURS)
 
     jobs = db.scalars(
         select(LiveJob).where(
             LiveJob.is_active.is_(True),
-            LiveJob.posted_at.is_not(None),
-            LiveJob.posted_at < cutoff,
+            or_(
+                and_(
+                    LiveJob.posted_at.is_not(None),
+                    LiveJob.posted_at < window_cutoff,
+                ),
+                LiveJob.last_seen_at < seen_cutoff,
+            ),
         )
     ).all()
 

@@ -1,0 +1,28 @@
+{
+  "reqDetailsBOList": [
+    {
+      "reqId": 28688,
+      "reqTitle": "Content Executive",
+      "designation": "Content Executive",
+      "location": "Chandigarh",
+      "approvedOn": "2026-08-31T03:59:00.559+0000",
+      "employmentType": "full_time"
+    },
+    {
+      "reqId": 28685,
+      "reqTitle": "Sales Manager II",
+      "designation": "Sales Manager II",
+      "location": "Trichy",
+      "approvedOn": "2026-08-28T10:20:33.427+0000",
+      "employmentType": "full_time"
+    },
+    {
+      "reqId": 28684,
+      "reqTitle": "Sales Manager II",
+      "designation": "Sales Manager II",
+      "location": "Dharmapuri",
+      "approvedOn": "2026-08-28T10:20:28.162+0000",
+      "employmentType": "full_time"
+    }
+  ]
+}
