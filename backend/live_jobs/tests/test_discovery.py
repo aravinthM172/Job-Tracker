@@ -68,6 +68,21 @@ def test_rerun_updates_not_duplicates(run_discovery, db):
     assert rows[0].status == "LIVE"
 
 
+def test_location_filter_drops_non_bangalore(run_discovery, db, monkeypatch):
+    monkeypatch.setenv("LIVE_JOBS_LOCATIONS", "bengaluru,bangalore")
+    counts = run_discovery(
+        [
+            make_job(external_job_id="a", location="Bengaluru, Karnataka, India"),
+            make_job(external_job_id="b", location="Dublin, Ireland"),
+            make_job(external_job_id="c", location="2 Locations"),
+        ]
+    )
+
+    assert counts["new"] == 1
+    assert counts["skipped_location"] == 2
+    assert [r.external_job_id for r in db.query(LiveJob).all()] == ["a"]
+
+
 def test_old_job_is_skipped(run_discovery, db):
     counts = run_discovery(
         [make_job(posted_at=datetime.utcnow() - timedelta(hours=72))]

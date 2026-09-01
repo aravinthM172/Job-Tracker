@@ -146,7 +146,7 @@ export function LiveJobsPage() {
         <div>
           <h1 className="text-lg font-semibold text-slate-900">Live Jobs</h1>
           <p className="mt-1 text-sm text-slate-500">
-            Jobs discovered from tracked companies in the last 48 hours.
+            Bengaluru jobs discovered from tracked companies in the last 48 hours.
           </p>
         </div>
 
@@ -222,7 +222,7 @@ export function LiveJobsPage() {
             No Live Jobs found
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
-            No jobs have been discovered in the current 48-hour window yet.
+            No Bengaluru jobs from tracked companies in the last 48 hours yet.
           </p>
         </div>
       ) : (

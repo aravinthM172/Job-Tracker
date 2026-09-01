@@ -18,6 +18,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from sqlalchemy.orm import Session
 
 from .company_sources import COMPANY_SOURCES
+from .config import location_filter, location_matches
 from .normalize import (
     clean_location,
     clean_title,
@@ -55,7 +56,7 @@ def _fetch_company(company: str, feeds: list[tuple[str, str]]) -> list:
     return jobs
 
 
-def _ingest(db: Session, batch: list, cutoff, counts: dict) -> None:
+def _ingest(db: Session, batch: list, cutoff, locations, counts: dict) -> None:
     for job in batch:
         counts["fetched"] += 1
 
@@ -71,6 +72,11 @@ def _ingest(db: Session, batch: list, cutoff, counts: dict) -> None:
             continue
 
         location = clean_location(job.location)
+
+        if not location_matches(location, locations):
+            counts["skipped_location"] += 1
+            continue
+
         external_id = job.external_job_id or fallback_external_id(
             job.company, title, location, job.job_url
         )
@@ -109,6 +115,7 @@ def discover_all_companies(db: Session) -> dict[str, int]:
         "fetched": 0,
         "skipped_old": 0,
         "skipped_invalid": 0,
+        "skipped_location": 0,
         "new": 0,
         "updated": 0,
         "timed_out": 0,
@@ -122,6 +129,7 @@ def discover_all_companies(db: Session) -> dict[str, int]:
 
     counts["companies"] = len(work)
     cutoff = live_job_cutoff()
+    locations = location_filter()
     deadline = time.monotonic() + _BUDGET_SECONDS
 
     with ThreadPoolExecutor(max_workers=_MAX_WORKERS) as pool:
@@ -137,7 +145,7 @@ def discover_all_companies(db: Session) -> dict[str, int]:
                     pending.cancel()
                 break
 
-            _ingest(db, future.result(), cutoff, counts)
+            _ingest(db, future.result(), cutoff, locations, counts)
             db.commit()  # one commit per company, not per posting
 
     return counts

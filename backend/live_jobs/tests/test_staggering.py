@@ -31,6 +31,7 @@ class RecordingSource:
 
 @pytest.fixture
 def wired(monkeypatch):
+    monkeypatch.setenv("LIVE_JOBS_LOCATIONS", "")  # this test is about scheduling
     light = RecordingSource("greenhouse")
     heavy = RecordingSource("workday")
     monkeypatch.setattr(
