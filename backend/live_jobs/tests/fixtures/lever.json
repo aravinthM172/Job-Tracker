@@ -1,0 +1,56 @@
+[
+  {
+    "id": "a538a1ca-0b76-46d1-a933-d43dbe7f5c83",
+    "text": "Brand & Community Manager",
+    "hostedUrl": "https://jobs.lever.co/tala/a538a1ca-0b76-46d1-a933-d43dbe7f5c83",
+    "applyUrl": "https://jobs.lever.co/tala/a538a1ca-0b76-46d1-a933-d43dbe7f5c83/apply",
+    "categories": {
+      "commitment": "Full-time",
+      "department": "Brand & Communications",
+      "location": "MX",
+      "team": "Country Marketing",
+      "allLocations": [
+        "MX"
+      ]
+    },
+    "country": "MX",
+    "createdAt": 1786057390514,
+    "workplaceType": "remote"
+  },
+  {
+    "id": "ad2121e6-4421-4858-a3b3-5e5bc36e6bc9",
+    "text": "SDET II",
+    "hostedUrl": "https://jobs.lever.co/tala/ad2121e6-4421-4858-a3b3-5e5bc36e6bc9",
+    "applyUrl": "https://jobs.lever.co/tala/ad2121e6-4421-4858-a3b3-5e5bc36e6bc9/apply",
+    "categories": {
+      "commitment": "Full-time",
+      "department": "Technology",
+      "location": "IN",
+      "team": "Product Engineering",
+      "allLocations": [
+        "IN"
+      ]
+    },
+    "country": "IN",
+    "createdAt": 1763568816128,
+    "workplaceType": "remote"
+  },
+  {
+    "id": "653aa0c7-fcb3-487f-b70c-00b461ebd725",
+    "text": "Senior Backend Engineer",
+    "hostedUrl": "https://jobs.lever.co/tala/653aa0c7-fcb3-487f-b70c-00b461ebd725",
+    "applyUrl": "https://jobs.lever.co/tala/653aa0c7-fcb3-487f-b70c-00b461ebd725/apply",
+    "categories": {
+      "commitment": "Full-time",
+      "department": "Technology",
+      "location": "MX",
+      "team": "Product Engineering",
+      "allLocations": [
+        "MX"
+      ]
+    },
+    "country": "MX",
+    "createdAt": 1779915212464,
+    "workplaceType": "remote"
+  }
+]

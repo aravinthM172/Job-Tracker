@@ -1,0 +1,40 @@
+{
+  "jobs": [
+    {
+      "id": 8503792002,
+      "title": "Account Executive - Italy",
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8503792002",
+      "location": {
+        "name": "Remote, Italy"
+      },
+      "first_published": "2026-04-17T05:58:03-04:00",
+      "updated_at": "2026-08-31T17:56:36-04:00",
+      "requisition_id": "6263"
+    },
+    {
+      "id": 8556658002,
+      "title": "AI Engineer",
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8556658002",
+      "location": {
+        "name": "Remote, Bangalore"
+      },
+      "first_published": "2026-05-22T09:16:29-04:00",
+      "updated_at": "2026-08-31T17:56:36-04:00",
+      "requisition_id": "6401"
+    },
+    {
+      "id": 8638232002,
+      "title": "AI Transformation Owner, CRO",
+      "absolute_url": "https://job-boards.greenhouse.io/gitlab/jobs/8638232002",
+      "location": {
+        "name": "Remote, United States"
+      },
+      "first_published": "2026-07-22T13:38:40-04:00",
+      "updated_at": "2026-08-31T17:56:36-04:00",
+      "requisition_id": "6682"
+    }
+  ],
+  "meta": {
+    "total": 222
+  }
+}

@@ -1,4 +1,5 @@
 from live_jobs.discovery import discover_all_companies
+from live_jobs.service import close_old_jobs
 from live_jobs.routes import router as live_jobs_router
 import sys
 
@@ -1640,25 +1641,32 @@ def perform_sync(trigger="manual"):
 
     # ------------------------------------------------------------
     # LIVE JOBS
-    # Runs inside the existing 5-minute sync loop.
-    # No second background thread is created.
+    # Runs inside the existing 5-minute sync loop - discover from each
+    # company's public careers feed, then age out anything past the
+    # 48h window. No second background thread is created.
     # ------------------------------------------------------------
-    live_jobs_discovered = 0
+    live_jobs_stats = {}
     live_jobs_error = None
 
     try:
         live_jobs_db = SessionLocal()
         try:
-            live_jobs_discovered = discover_all_companies(live_jobs_db)
+            live_jobs_stats = discover_all_companies(live_jobs_db)
+            live_jobs_stats["closed"] = close_old_jobs(live_jobs_db)
         finally:
             live_jobs_db.close()
     except Exception as e:
         live_jobs_error = str(e)
         print(f"[LIVE JOBS] discovery failed: {e}")
+        print(traceback.format_exc())
 
-    print(
-        f"[LIVE JOBS] discovered={live_jobs_discovered}"
-    )
+    if live_jobs_error:
+        errors.append({"account": "live_jobs", "error": live_jobs_error})
+    else:
+        print(
+            "[LIVE JOBS] "
+            + " ".join(f"{k}={v}" for k, v in live_jobs_stats.items())
+        )
 
     return {
         "success": True,
@@ -1677,6 +1685,7 @@ def perform_sync(trigger="manual"):
         "new_events": stats["events_added"],
         "rejected_count": stats["rejected_count"],
         "needs_review_count": stats["needs_review_count"],
+        "live_jobs": live_jobs_stats,
         "errors": errors,
     }
 

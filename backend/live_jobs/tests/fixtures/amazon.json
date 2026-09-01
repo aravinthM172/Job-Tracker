@@ -1,0 +1,38 @@
+{
+  "jobs": [
+    {
+      "id": "99f79ff8-5e51-479b-8f3d-fa814f171f84",
+      "id_icims": "10524368",
+      "title": "Critical Infrastructure Mechanical Engineer, Field Engineering",
+      "location": "US, TX, Wink",
+      "normalized_location": "Wink, Texas, USA",
+      "job_path": "/en/jobs/10524368/critical-infrastructure-mechanical-engineer-field-engineering",
+      "posted_date": "September  1, 2026",
+      "updated_time": "about 1 hour",
+      "url_next_step": "https://account.amazon.jobs/jobs/10524368/apply"
+    },
+    {
+      "id": "5449d1a7-95c6-4d6b-bc9a-2a2df2672656",
+      "id_icims": "10524448",
+      "title": "Software Development Engineer, SCOT-Inbound, Inventory Routing and Replenishment",
+      "location": "US, WA, Bellevue",
+      "normalized_location": "Bellevue, Washington, USA",
+      "job_path": "/en/jobs/10524448/software-development-engineer-scot-inbound-inventory-routing-and-replenishment",
+      "posted_date": "September  1, 2026",
+      "updated_time": "16 minutes",
+      "url_next_step": "https://account.amazon.jobs/jobs/10524448/apply"
+    },
+    {
+      "id": "dbb035d6-d32a-4cac-979a-65eadf4686ac",
+      "id_icims": "10524381",
+      "title": "Sr. RF Test Systems Development Engineer, Avionics Verification and Test, Amazon Leo ",
+      "location": "US, CA, San Diego",
+      "normalized_location": "San Diego, California, USA",
+      "job_path": "/en/jobs/10524381/sr-rf-test-systems-development-engineer-avionics-verification-and-test-amazon-leo",
+      "posted_date": "September  1, 2026",
+      "updated_time": "41 minutes",
+      "url_next_step": "https://account.amazon.jobs/jobs/10524381/apply"
+    }
+  ],
+  "hits": 6898
+}

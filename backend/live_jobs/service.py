@@ -1,3 +1,15 @@
+"""Live Jobs persistence + status logic.
+
+The 48h window is enforced in two places on purpose:
+- discovery drops old postings before they are ever written;
+- the read queries here also filter, so a job that ages out while stored
+  disappears from the dashboard without needing a sweep to run first.
+``close_old_jobs`` is the sweep that additionally flips ``is_active`` /
+``status`` so the stored row stays truthful.
+"""
+
+from __future__ import annotations
+
 from datetime import datetime, timedelta
 
 from sqlalchemy import func, select
@@ -5,8 +17,12 @@ from sqlalchemy.orm import Session
 
 from .models import LiveJob
 
-
 LOOKBACK_HOURS = 48
+
+# How long a re-posted job keeps the REPOSTED badge before it settles
+# back to LIVE (the is_reposted flag / repost_count stay for the "seen
+# N times" annotation).
+REPOST_BADGE_HOURS = 48
 
 
 def utcnow() -> datetime:
@@ -18,42 +34,50 @@ def live_job_cutoff() -> datetime:
 
 
 def calculate_status(job: LiveJob) -> str:
-    if job.is_reposted:
+    if not job.is_active:
+        return "CLOSED"
+
+    if (
+        job.is_reposted
+        and job.reposted_at is not None
+        and utcnow() - job.reposted_at < timedelta(hours=REPOST_BADGE_HOURS)
+    ):
         return "REPOSTED"
 
-    if job.is_active:
-        return "NEW" if job.first_seen_at == job.last_seen_at else "LIVE"
+    return "NEW" if job.first_seen_at == job.last_seen_at else "LIVE"
 
-    return "CLOSED"
+
+def find_live_job(
+    db: Session,
+    company: str,
+    external_job_id: str,
+    source: str,
+) -> LiveJob | None:
+    return db.scalar(
+        select(LiveJob).where(
+            LiveJob.company == company,
+            LiveJob.external_job_id == external_job_id,
+            LiveJob.source == source,
+        )
+    )
 
 
 def upsert_live_job(
     db: Session,
     *,
     company: str,
-    external_job_id: str | None,
+    external_job_id: str,
     title: str,
     location: str | None = None,
     job_url: str | None = None,
-    source: str = "linkedin",
+    source: str = "unknown",
     posted_at: datetime | None = None,
     description: str | None = None,
 ) -> LiveJob:
-
     now = utcnow()
+    existing = find_live_job(db, company, external_job_id, source)
 
-    existing = None
-
-    if external_job_id:
-        existing = db.scalar(
-            select(LiveJob).where(
-                LiveJob.company == company,
-                LiveJob.external_job_id == external_job_id,
-                LiveJob.source == source,
-            )
-        )
-
-    if existing:
+    if existing is not None:
         was_inactive = not existing.is_active
 
         existing.last_seen_at = now
@@ -105,11 +129,11 @@ def upsert_live_job(
     db.add(job)
     db.commit()
     db.refresh(job)
-
     return job
 
 
 def close_old_jobs(db: Session) -> int:
+    """Flip jobs whose posted_at fell outside the 48h window to CLOSED."""
     cutoff = live_job_cutoff()
 
     jobs = db.scalars(
@@ -120,18 +144,15 @@ def close_old_jobs(db: Session) -> int:
         )
     ).all()
 
-    count = 0
-
     for job in jobs:
         job.is_active = False
         job.status = "CLOSED"
         job.updated_at = utcnow()
-        count += 1
 
-    if count:
+    if jobs:
         db.commit()
 
-    return count
+    return len(jobs)
 
 
 def get_live_jobs(
@@ -139,7 +160,6 @@ def get_live_jobs(
     *,
     company: str | None = None,
 ) -> list[LiveJob]:
-
     cutoff = live_job_cutoff()
 
     query = select(LiveJob).where(
@@ -148,9 +168,7 @@ def get_live_jobs(
     )
 
     if company:
-        query = query.where(
-            func.lower(LiveJob.company) == company.lower()
-        )
+        query = query.where(func.lower(LiveJob.company) == company.lower())
 
     query = query.order_by(LiveJob.posted_at.desc())
 
@@ -167,16 +185,9 @@ def get_summary(db: Session) -> dict[str, int]:
         )
     ).all()
 
-    summary = {
-        "total": len(jobs),
-        "new": 0,
-        "live": 0,
-        "reposted": 0,
-        "closed": 0,
-    }
+    summary = {"total": len(jobs), "new": 0, "live": 0, "reposted": 0, "closed": 0}
 
     for job in jobs:
-        status = calculate_status(job)
-        summary[status.lower()] += 1
+        summary[calculate_status(job).lower()] += 1
 
     return summary
