@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy - Job Application Tracker</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    margin: 0 auto; max-width: 680px; padding: 3rem 1.25rem;
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  h1 { font-size: 1.6rem; }
+  h2 { font-size: 1.15rem; margin-top: 2rem; }
+  p, li { margin: .6rem 0; }
+  a { color: #2563eb; }
+  .updated { color: #6b7280; font-size: .9rem; }
+</style>
+</head>
+<body>
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: 1 September 2026</p>
+
+  <p>This Privacy Policy describes how the "Job Application Tracker" application
+  ("the App") handles data. The App is a personal project operated by its author
+  for a fixed, private set of the author's own mailboxes. It is not a commercial
+  service and is not offered for use by the general public.</p>
+
+  <h2>Data the App accesses</h2>
+  <ul>
+    <li><strong>Google account data</strong>, via the
+      <code>https://www.googleapis.com/auth/gmail.readonly</code> scope: read-only
+      access to email messages and settings, used to read message subjects,
+      senders, dates and bodies in order to identify job-application-related
+      emails.</li>
+    <li><strong>Microsoft account data</strong>, via the <code>Mail.Read</code>
+      and <code>User.Read</code> scopes: read-only access to Outlook mail and
+      basic profile information, for the same purpose.</li>
+  </ul>
+
+  <h2>How the App uses the data</h2>
+  <p>Message metadata and text are processed solely to classify job-application
+  emails and to extract the associated company name, role, and status. The
+  results are written to a local database that powers a private dashboard. The
+  data is not used for advertising, is not sold, and is not used to build
+  profiles for any purpose unrelated to the features above.</p>
+
+  <h2>Storage and retention</h2>
+  <ul>
+    <li>OAuth tokens are stored locally on the machine running the App and are
+      used only to call the Google and Microsoft APIs.</li>
+    <li>Extracted application data (company, role, status, email subject/body,
+      links, timestamps) is stored in a local SQLite database on that same
+      machine.</li>
+    <li>Data is retained until the operator deletes the database or revokes
+      access.</li>
+  </ul>
+
+  <h2>Sharing</h2>
+  <p>The App does not transmit Google or Microsoft user data to any third party.
+  Data flows only between the operator's machine and Google/Microsoft APIs.
+  No humans other than the operator can read the data, and it is not used by any
+  AI/ML model.</p>
+
+  <h2>Limited Use disclosure</h2>
+  <p>The App's use and transfer of information received from Google APIs adheres
+  to the
+  <a href="https://developers.google.com/terms/api-services-user-data-policy">Google API Services User Data Policy</a>,
+  including the Limited Use requirements.</p>
+
+  <h2>Revoking access</h2>
+  <p>Access can be revoked at any time from
+  <a href="https://myaccount.google.com/permissions">Google Account permissions</a>
+  or <a href="https://account.microsoft.com/privacy">Microsoft account privacy</a>.
+  Revoking access stops all further data collection.</p>
+
+  <h2>Contact</h2>
+  <p>Questions: <a href="mailto:aravinthm.17@outlook.com">aravinthm.17@outlook.com</a></p>
+</body>
+</html>
