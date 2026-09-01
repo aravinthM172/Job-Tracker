@@ -83,6 +83,27 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Miro": [("ashby", "miro")],
     "Wealthsimple": [("ashby", "wealthsimple")],
     "Airwallex": [("ashby", "airwallex")],
+    # -- Workday (token = "tenant/wd-host/site") --------------------
+    # Workday only exposes a relative post date, so effectively only
+    # "today / yesterday" postings clear the 48h gate for these.
+    "NVIDIA": [("workday", "nvidia/wd5/NVIDIAExternalCareerSite")],
+    "Adobe": [("workday", "adobe/wd5/external_experienced")],
+    "Salesforce": [("workday", "salesforce/wd12/External_Career_Site")],
+    "Workday": [("workday", "workday/wd5/Workday")],
+    "Intel": [("workday", "intel/wd1/External")],
+    "Broadcom": [("workday", "broadcom/wd1/External_Career")],
+    "Autodesk": [("workday", "autodesk/wd1/Ext")],
+    "Samsung": [("workday", "sec/wd3/Samsung_Careers")],
+    "Citi": [("workday", "citi/wd5/2")],
+    "Mastercard": [("workday", "mastercard/wd1/CorporateCareers")],
+    "PayPal": [("workday", "paypal/wd1/jobs")],
+    "Capital One": [("workday", "capitalone/wd12/Capital_One")],
+    "BlackRock": [("workday", "blackrock/wd1/BlackRock_Professional")],
+    "Morgan Stanley": [("workday", "ms/wd5/External")],
+    "Deutsche Bank": [("workday", "db/wd3/DBWebsite")],
+    "Wells Fargo": [("workday", "wf/wd1/WellsFargoJobs")],
+    "Target": [("workday", "target/wd5/targetcareers")],
     # -- Per-company adapters ----------------------------------------
     "Amazon": [("amazon", "")],
 }
+

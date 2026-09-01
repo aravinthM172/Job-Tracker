@@ -1,5 +1,5 @@
 from live_jobs.discovery import discover_all_companies
-from live_jobs.service import close_old_jobs
+from live_jobs.service import close_old_jobs, purge_stale_jobs
 from live_jobs.routes import router as live_jobs_router
 import sys
 
@@ -1653,6 +1653,7 @@ def perform_sync(trigger="manual"):
         try:
             live_jobs_stats = discover_all_companies(live_jobs_db)
             live_jobs_stats["closed"] = close_old_jobs(live_jobs_db)
+            live_jobs_stats["purged"] = purge_stale_jobs(live_jobs_db)
         finally:
             live_jobs_db.close()
     except Exception as e:

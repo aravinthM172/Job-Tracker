@@ -8,12 +8,17 @@ from __future__ import annotations
 
 import hashlib
 import re
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
 
 _WS = re.compile(r"\s+")
 _TAG = re.compile(r"<[^>]+>")
 _EPOCH = re.compile(r"\d{10,13}")
+# Workday-style relative strings: "Posted Today", "Posted Yesterday",
+# "Posted 5 Days Ago", "Posted 30+ Days Ago".
+_RELATIVE = re.compile(
+    r"posted\s+(today|yesterday|(\d+)\+?\s+days?\s+ago)", re.IGNORECASE
+)
 
 _DATE_FORMATS = ("%B %d, %Y", "%b %d, %Y", "%Y-%m-%d", "%m/%d/%Y", "%d %B %Y")
 
@@ -63,6 +68,20 @@ def parse_posted_at(value: object) -> datetime | None:
             return None
 
     text = _WS.sub(" ", str(value).strip())
+
+    relative = _RELATIVE.search(text)
+    if relative:
+        token = relative.group(1).lower()
+        if "today" in token:
+            days = 0
+        elif "yesterday" in token:
+            days = 1
+        else:
+            days = int(relative.group(2))
+        midnight = datetime.utcnow().replace(
+            hour=0, minute=0, second=0, microsecond=0
+        )
+        return midnight - timedelta(days=days)
 
     try:
         parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))

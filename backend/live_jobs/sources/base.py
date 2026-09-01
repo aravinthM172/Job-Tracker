@@ -47,14 +47,16 @@ def get_json(
     url: str,
     *,
     params: dict[str, Any] | None = None,
+    json_body: Any | None = None,
     method: str = "GET",
 ) -> Any | None:
     """GET/POST a URL and return parsed JSON, or None on any failure."""
     try:
         response = requests.request(
-            method,
+            "POST" if json_body is not None else method,
             url,
             params=params,
+            json=json_body,
             headers=_HEADERS,
             timeout=_TIMEOUT,
         )

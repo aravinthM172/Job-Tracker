@@ -12,7 +12,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from .models import LiveJob
@@ -23,6 +23,11 @@ LOOKBACK_HOURS = 48
 # back to LIVE (the is_reposted flag / repost_count stay for the "seen
 # N times" annotation).
 REPOST_BADGE_HOURS = 48
+
+# Closed rows older than this are deleted outright - keeps the table
+# small on a space-constrained box (a job seeker never needs week-old
+# expired postings).
+PURGE_AFTER_DAYS = 7
 
 
 def utcnow() -> datetime:
@@ -73,9 +78,21 @@ def upsert_live_job(
     source: str = "unknown",
     posted_at: datetime | None = None,
     description: str | None = None,
+    commit: bool = True,
 ) -> LiveJob:
+    """Insert or update one posting. ``commit=False`` only flushes, so a
+    caller processing a batch can commit once at the end."""
     now = utcnow()
     existing = find_live_job(db, company, external_job_id, source)
+
+    def _persist(row: LiveJob) -> LiveJob:
+        db.add(row)
+        if commit:
+            db.commit()
+            db.refresh(row)
+        else:
+            db.flush()
+        return row
 
     if existing is not None:
         was_inactive = not existing.is_active
@@ -101,11 +118,7 @@ def upsert_live_job(
             existing.reposted_at = now
 
         existing.status = calculate_status(existing)
-
-        db.add(existing)
-        db.commit()
-        db.refresh(existing)
-        return existing
+        return _persist(existing)
 
     job = LiveJob(
         company=company,
@@ -126,10 +139,7 @@ def upsert_live_job(
         status="NEW",
     )
 
-    db.add(job)
-    db.commit()
-    db.refresh(job)
-    return job
+    return _persist(job)
 
 
 def close_old_jobs(db: Session) -> int:
@@ -153,6 +163,21 @@ def close_old_jobs(db: Session) -> int:
         db.commit()
 
     return len(jobs)
+
+
+def purge_stale_jobs(db: Session) -> int:
+    """Delete long-closed rows so the table stays small."""
+    cutoff = utcnow() - timedelta(days=PURGE_AFTER_DAYS)
+
+    result = db.execute(
+        delete(LiveJob).where(
+            LiveJob.is_active.is_(False),
+            LiveJob.updated_at < cutoff,
+        )
+    )
+    db.commit()
+
+    return result.rowcount or 0
 
 
 def get_live_jobs(

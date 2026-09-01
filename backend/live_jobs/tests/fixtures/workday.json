@@ -1,0 +1,32 @@
+{
+  "total": 2000,
+  "jobPostings": [
+    {
+      "title": "Business Operations Technical Program Manager — DGX Cloud",
+      "externalPath": "/job/US-CA-Santa-Clara/Business-Operations-Technical-Program-Manager---DGX-Cloud_JR2023286",
+      "locationsText": "US, CA, Santa Clara",
+      "postedOn": "Posted Today",
+      "bulletFields": [
+        "JR2023286"
+      ]
+    },
+    {
+      "title": "Senior Thermal Design Engineer",
+      "externalPath": "/job/US-CA-Santa-Clara/Senior-Thermal-Design-Engineer_JR2019916-1",
+      "locationsText": "US, CA, Santa Clara",
+      "postedOn": "Posted Today",
+      "bulletFields": [
+        "JR2019916"
+      ]
+    },
+    {
+      "title": "Senior Physical Design Methodology Engineer, PPA Fusion Compiler",
+      "externalPath": "/job/US-CA-Santa-Clara/Senior-Physical-Design-Methodology-Engineer--PPA-Fusion-Compiler_JR2011273",
+      "locationsText": "3 Locations",
+      "postedOn": "Posted Today",
+      "bulletFields": [
+        "JR2011273"
+      ]
+    }
+  ]
+}
