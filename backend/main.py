@@ -1,3 +1,5 @@
+from live_jobs.discovery import discover_all_companies
+from live_jobs.routes import router as live_jobs_router
 import sys
 
 # Windows consoles default to cp1252, which can't print emoji that show up
@@ -56,6 +58,9 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(title="Job Application Tracker", lifespan=lifespan)
+
+
+app.include_router(live_jobs_router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -1632,6 +1637,28 @@ def perform_sync(trigger="manual"):
     print(f"Jobs updated: {stats['jobs_updated']}")
     print(f"Rejected: {stats['rejected_count']}")
     print("=" * 60)
+
+    # ------------------------------------------------------------
+    # LIVE JOBS
+    # Runs inside the existing 5-minute sync loop.
+    # No second background thread is created.
+    # ------------------------------------------------------------
+    live_jobs_discovered = 0
+    live_jobs_error = None
+
+    try:
+        live_jobs_db = SessionLocal()
+        try:
+            live_jobs_discovered = discover_all_companies(live_jobs_db)
+        finally:
+            live_jobs_db.close()
+    except Exception as e:
+        live_jobs_error = str(e)
+        print(f"[LIVE JOBS] discovery failed: {e}")
+
+    print(
+        f"[LIVE JOBS] discovered={live_jobs_discovered}"
+    )
 
     return {
         "success": True,

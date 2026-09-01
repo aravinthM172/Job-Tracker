@@ -23,7 +23,8 @@ from sqlalchemy import (
     Text,
     ForeignKey,
 )
-from sqlalchemy.orm import declarative_base, sessionmaker, relationship
+from db_base import Base
+from sqlalchemy.orm import sessionmaker, relationship
 
 BASE_DIR = Path(__file__).resolve().parent
 
@@ -47,7 +48,7 @@ SessionLocal = sessionmaker(
     autoflush=False,
 )
 
-Base = declarative_base()
+
 
 
 # Order matters: higher number = more "final"/advanced stage of the
@@ -178,7 +179,11 @@ def iso(value):
     return value.isoformat()
 
 
+
+# Register LiveJob only after db.Base and engine are initialized.
+
 Base.metadata.create_all(engine)
+
 
 
 def _migrate():
@@ -200,3 +205,5 @@ def _migrate():
 
 
 _migrate()
+
+

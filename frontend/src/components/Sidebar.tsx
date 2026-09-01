@@ -7,12 +7,14 @@ import {
   ClipboardList,
   Settings,
   Mail,
+  Radio,
   X,
 } from "lucide-react";
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
   { to: "/applications", label: "Applications", icon: Briefcase },
+  { to: "/live-jobs", label: "Live Jobs", icon: Radio },
   { to: "/interviews", label: "Interviews", icon: Users },
   { to: "/assessments", label: "Assessments", icon: ClipboardList },
   { to: "/rejected", label: "Rejected", icon: XCircle },

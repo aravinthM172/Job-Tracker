@@ -10,6 +10,7 @@ import { DashboardPage } from "./pages/DashboardPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { StatusFilteredPage } from "./pages/StatusFilteredPage";
 import { SettingsPage } from "./pages/SettingsPage";
+import { LiveJobsPage } from "./pages/LiveJobsPage";
 
 export interface TrackerContext {
   jobs: Job[];
@@ -26,6 +27,7 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   "/assessments": { title: "Assessments", subtitle: "Applications with a pending or completed assessment" },
   "/rejected": { title: "Rejected", subtitle: "Applications that did not move forward" },
   "/settings": { title: "Settings", subtitle: "Email account connections" },
+  "/live-jobs": { title: "Live Jobs", subtitle: "Recently discovered jobs from tracked companies" },
 };
 
 function Layout() {
@@ -143,6 +145,7 @@ export default function App() {
           }
         />
         <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/live-jobs" element={<LiveJobsPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Route>
     </Routes>

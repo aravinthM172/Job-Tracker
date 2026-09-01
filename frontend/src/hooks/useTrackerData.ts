@@ -9,6 +9,11 @@ import {
 
 export type SyncPhase = "idle" | "syncing" | "success" | "error";
 
+// Matches the backend's auto-sync interval (see AUTO_SYNC_INTERVAL_SECONDS
+// in backend/main.py) so an open tab picks up new data soon after each
+// background sync completes.
+const AUTO_REFRESH_INTERVAL_MS = 5 * 60 * 1000;
+
 interface TrackerState {
   jobs: Job[];
   dashboard: DashboardResponse["summary"] | null;
@@ -74,6 +79,14 @@ export function useTrackerData() {
 
   useEffect(() => {
     refresh();
+  }, [refresh]);
+
+  // The backend auto-syncs in the background every few minutes, but
+  // that doesn't push anything to the browser - without this, a tab
+  // left open would keep showing whatever was loaded at mount time.
+  useEffect(() => {
+    const id = setInterval(refresh, AUTO_REFRESH_INTERVAL_MS);
+    return () => clearInterval(id);
   }, [refresh]);
 
   // Does NOT block the UI: the button drives a small async state
