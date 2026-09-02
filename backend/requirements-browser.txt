@@ -1,0 +1,7 @@
+# Optional: enables live_jobs' `browser` source (headless-Chromium scrape
+# of careers sites that render jobs only in JS - DocuSign, NetApp, ...).
+# Install with:
+#   pip install -r requirements-browser.txt
+#   playwright install --with-deps chromium
+# Adds ~400 MB to the image; the browser adapter no-ops if this is absent.
+playwright

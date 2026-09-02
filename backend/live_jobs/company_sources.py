@@ -174,6 +174,24 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
         )
     ],
     "AMD": [("sitemap", "https://careers.amd.com/sitemap.xml")],
+    # -- Headless browser (token = "url###card_css###location_css") ---
+    # DATELESS - these SPA search pages carry no posted date. Needs
+    # Playwright + Chromium in the image (optional; adapter no-ops
+    # without it).
+    "DocuSign": [
+        (
+            "browser",
+            "https://careers.docusign.com/careers-home/jobs?location=India"
+            "###mat-expansion-panel###[class*='location']",
+        )
+    ],
+    "NetApp": [
+        (
+            "browser",
+            "https://jobs.netapp.com/en/search-jobs/India"
+            "###tr.data-row###.jobLocation",
+        )
+    ],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields

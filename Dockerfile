@@ -10,8 +10,18 @@ RUN npm run build
 FROM python:3.13-slim
 WORKDIR /app/backend
 
-COPY backend/requirements.txt ./
+COPY backend/requirements.txt backend/requirements-browser.txt ./
 RUN pip install --no-cache-dir -r requirements.txt
+
+# Optional: the live_jobs `browser` source (headless Chromium for
+# JS-only careers sites). Adds ~400 MB. Build with
+# `--build-arg LIVE_JOBS_BROWSER=1` to enable; the adapter no-ops if the
+# browser isn't present.
+ARG LIVE_JOBS_BROWSER=0
+RUN if [ "$LIVE_JOBS_BROWSER" = "1" ]; then \
+        pip install --no-cache-dir -r requirements-browser.txt && \
+        playwright install --with-deps chromium ; \
+    fi
 
 COPY backend/ ./
 COPY --from=frontend-build /app/frontend/dist /app/frontend/dist

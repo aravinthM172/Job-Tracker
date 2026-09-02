@@ -4,6 +4,7 @@ from .amazon import AmazonSource
 from .ashby import AshbySource
 from .base import DiscoveredJob, JobSource
 from .bofa import BofaSource
+from .browser import BrowserSource
 from .darwinbox import DarwinboxSource
 from .google import GoogleSource
 from .greenhouse import GreenhouseSource
@@ -19,17 +20,16 @@ from .workday import WorkdaySource
 
 # Sources that pull large boards / need multiple requests - discovery
 # runs these less often than the cheap single-request ATS feeds.
-HEAVY_SOURCES = {"workday", "amazon", "oracle", "radancy", "sitemap"}
+HEAVY_SOURCES = {"workday", "amazon", "oracle", "radancy", "sitemap", "browser"}
 
-# Sources behind aggressive anti-scraping (Google / Meta). Run them on
-# the slowest cadence - a burst gets the host IP soft-blocked, and a
-# block looks like an empty feed rather than an error.
-GUARDED_SOURCES = {"google", "meta"}
+# Sources behind aggressive anti-scraping (Google / Meta), or that spin
+# up a headless browser (browser). Run them on the slowest cadence.
+GUARDED_SOURCES = {"google", "meta", "browser"}
 
 # Sources whose feed carries no reliable "recently posted" signal - we
 # show every currently-open matching req and rely on the not-seen sweep
 # in close_old_jobs to retire them once they drop off the feed.
-DATELESS_SOURCES = {"swiggy", "meta", "google"}
+DATELESS_SOURCES = {"swiggy", "meta", "google", "browser"}
 
 SOURCES: dict[str, JobSource] = {
     source.name: source
@@ -49,6 +49,7 @@ SOURCES: dict[str, JobSource] = {
         KekaSource(),
         DarwinboxSource(),
         SitemapSource(),
+        BrowserSource(),
     )
 }
 
