@@ -192,6 +192,25 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
             "###tr.data-row###.jobLocation",
         )
     ],
+    # -- SuccessFactors Career Site Builder (token = search URL) --
+    "Volvo Group": [
+        ("successfactors", "https://jobs.volvogroup.com/search/?q=&locationsearch=India")
+    ],
+    "EY": [
+        ("successfactors", "https://careers.ey.com/ey/search/?q=&locationsearch=India")
+    ],
+    "ZF": [
+        ("successfactors", "https://jobs.zf.com/search/?q=&locationsearch=India")
+    ],
+    "ANZ": [
+        ("successfactors", "https://careers.anz.com/search/?q=&locationsearch=India")
+    ],
+    "SAP Labs India": [
+        ("successfactors", "https://jobs.sap.com/search/?q=&locationsearch=India")
+    ],
+    "PayU": [
+        ("successfactors", "https://careers.payu.in/search/?q=&locationsearch=India")
+    ],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields

@@ -15,12 +15,21 @@ from .oracle import OracleSource
 from .radancy import RadancySource
 from .sitemap import SitemapSource
 from .smartrecruiters import SmartRecruitersSource
+from .successfactors import SuccessFactorsSource
 from .swiggy import SwiggySource
 from .workday import WorkdaySource
 
 # Sources that pull large boards / need multiple requests - discovery
 # runs these less often than the cheap single-request ATS feeds.
-HEAVY_SOURCES = {"workday", "amazon", "oracle", "radancy", "sitemap", "browser"}
+HEAVY_SOURCES = {
+    "workday",
+    "amazon",
+    "oracle",
+    "radancy",
+    "sitemap",
+    "browser",
+    "successfactors",
+}
 
 # Sources behind aggressive anti-scraping (Google / Meta), or that spin
 # up a headless browser (browser). Run them on the slowest cadence.
@@ -29,7 +38,7 @@ GUARDED_SOURCES = {"google", "meta", "browser"}
 # Sources whose feed carries no reliable "recently posted" signal - we
 # show every currently-open matching req and rely on the not-seen sweep
 # in close_old_jobs to retire them once they drop off the feed.
-DATELESS_SOURCES = {"swiggy", "meta", "google", "browser"}
+DATELESS_SOURCES = {"swiggy", "meta", "google", "browser", "successfactors"}
 
 SOURCES: dict[str, JobSource] = {
     source.name: source
@@ -50,6 +59,7 @@ SOURCES: dict[str, JobSource] = {
         DarwinboxSource(),
         SitemapSource(),
         BrowserSource(),
+        SuccessFactorsSource(),
     )
 }
 

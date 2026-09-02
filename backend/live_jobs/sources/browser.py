@@ -37,6 +37,17 @@ _MAX_CARDS = 25
 _NAV_TIMEOUT = 45_000
 _JOB_LINK = "a[href*='/job'], a[href*='JobDetail'], a[href*='job-detail']"
 
+# best-effort cookie-consent dismissal - many careers SPAs won't render
+# results until the banner is gone
+_CONSENT = (
+    "#onetrust-accept-btn-handler",
+    "button#accept-cookies",
+    "button[aria-label*='accept' i]",
+    "button[title*='accept' i]",
+    "[data-testid*='accept' i]",
+    "text=/^(accept all|accept cookies|i accept|agree)$/i",
+)
+
 _LD_BLOCK = re.compile(
     r'<script[^>]+type="application/ld\+json"[^>]*>(.*?)</script>', re.S | re.I
 )
@@ -74,6 +85,13 @@ def _render_html(url: str) -> str | None:
                     page.goto(
                         url, wait_until="domcontentloaded", timeout=_NAV_TIMEOUT
                     )
+                    page.wait_for_timeout(1_500)
+                    for selector in _CONSENT:
+                        try:
+                            page.click(selector, timeout=1_000)
+                            break
+                        except Exception:
+                            continue
                     try:
                         page.wait_for_selector(_JOB_LINK, timeout=15_000)
                     except Exception:
