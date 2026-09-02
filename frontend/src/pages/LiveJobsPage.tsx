@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import {
   BriefcaseBusiness,
+  Building2,
   Clock,
   ExternalLink,
   MapPin,
@@ -30,6 +31,8 @@ interface LiveJob {
   original_first_seen_at: string | null;
   reposted_at: string | null;
   status: "NEW" | "LIVE" | "REPOSTED" | "CLOSED";
+  experience_min: number | null;
+  experience_max: number | null;
 }
 
 interface Summary {
@@ -46,30 +49,62 @@ const REFRESH_MS = 20000;
 type StatusFilter = "ALL" | LiveJob["status"];
 type SortKey = "newest" | "oldest" | "company";
 
-const EXPERIENCE_LEVELS = [
-  "Intern",
-  "Entry",
-  "Mid",
-  "Senior",
-  "Lead+",
-  "Unspecified",
+// Experience is parsed server-side from the job title + description into
+// a [min, max] year range. These buckets let the filter group them; a job
+// matches a bucket when its range overlaps the bucket's range.
+const EXPERIENCE_BUCKETS = [
+  { key: "0-2", label: "0-2 yrs", lo: 0, hi: 2 },
+  { key: "3-5", label: "3-5 yrs", lo: 3, hi: 5 },
+  { key: "6-9", label: "6-9 yrs", lo: 6, hi: 9 },
+  { key: "10+", label: "10+ yrs", lo: 10, hi: 99 },
+  { key: "unknown", label: "Not stated", lo: -1, hi: -1 },
 ] as const;
-type ExperienceLevel = (typeof EXPERIENCE_LEVELS)[number];
+type ExperienceKey = (typeof EXPERIENCE_BUCKETS)[number]["key"];
 
-function experienceLevel(title: string): ExperienceLevel {
-  const t = ` ${title.toLowerCase()} `;
-  if (/\b(intern|internship|trainee|apprentice|co-?op)\b/.test(t)) return "Intern";
-  if (
-    /\b(principal|staff|architect|director|head|vp|distinguished|fellow|lead|manager|mgr)\b/.test(
-      t,
-    )
-  )
-    return "Lead+";
-  if (/\b(sr\.?|senior|snr|iii|iv)\b/.test(t)) return "Senior";
-  if (/\b(jr\.?|junior|entry|graduate|grad|associate|fresher|trainee)\b/.test(t))
-    return "Entry";
-  if (/\b(ii|mid)\b/.test(t)) return "Mid";
-  return "Unspecified";
+function experienceLabel(job: LiveJob): string | null {
+  const { experience_min: lo, experience_max: hi } = job;
+  if (lo == null && hi == null) return null;
+  if (lo != null && hi != null) return lo === hi ? `${lo} yrs` : `${lo}-${hi} yrs`;
+  if (lo != null) return `${lo}+ yrs`;
+  return `up to ${hi} yrs`;
+}
+
+function matchesExperienceBucket(job: LiveJob, key: ExperienceKey): boolean {
+  const { experience_min: lo, experience_max: hi } = job;
+  if (key === "unknown") return lo == null && hi == null;
+  if (lo == null && hi == null) return false;
+  const bucket = EXPERIENCE_BUCKETS.find((b) => b.key === key)!;
+  const jobLo = lo ?? hi ?? 0;
+  const jobHi = hi ?? lo ?? 99;
+  return jobLo <= bucket.hi && jobHi >= bucket.lo;
+}
+
+// Where each posting was pulled from. Almost every source is the
+// employer's own ATS / careers site (first-party); Adzuna is the one
+// aggregator back-fill.
+const SOURCE_LABELS: Record<string, string> = {
+  greenhouse: "Greenhouse",
+  lever: "Lever",
+  ashby: "Ashby",
+  workday: "Workday",
+  oracle: "Oracle Recruiting",
+  smartrecruiters: "SmartRecruiters",
+  successfactors: "SuccessFactors",
+  keka: "Keka",
+  darwinbox: "Darwinbox",
+  radancy: "Careers site",
+  sitemap: "Careers site",
+  browser: "Careers site",
+  bofa: "Careers site",
+  swiggy: "Careers site",
+  amazon: "Amazon Jobs",
+  meta: "Meta Careers",
+  google: "Google Careers",
+  adzuna: "Adzuna (aggregator)",
+};
+
+function sourceLabel(source: string): string {
+  return SOURCE_LABELS[source] ?? source;
 }
 
 function normalizeLocation(loc: string | null): string {
@@ -209,7 +244,7 @@ export function LiveJobsPage() {
 
   const [search, setSearch] = useState("");
   const [company, setCompany] = useState("");
-  const [experience, setExperience] = useState<ExperienceLevel | "">("");
+  const [experience, setExperience] = useState<ExperienceKey | "">("");
   const [location, setLocation] = useState("");
   const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
   const [sort, setSort] = useState<SortKey>("newest");
@@ -280,7 +315,7 @@ export function LiveJobsPage() {
     const rows = jobs.filter((job) => {
       if (statusFilter !== "ALL" && job.status !== statusFilter) return false;
       if (company && job.company !== company) return false;
-      if (experience && experienceLevel(job.title) !== experience) return false;
+      if (experience && !matchesExperienceBucket(job, experience)) return false;
       if (location && normalizeLocation(job.location) !== location) return false;
       if (value) {
         const haystack =
@@ -326,7 +361,11 @@ export function LiveJobsPage() {
     activeFilters.push({ label: statusFilter, clear: () => setStatusFilter("ALL") });
   if (company) activeFilters.push({ label: company, clear: () => setCompany("") });
   if (experience)
-    activeFilters.push({ label: experience, clear: () => setExperience("") });
+    activeFilters.push({
+      label:
+        EXPERIENCE_BUCKETS.find((b) => b.key === experience)?.label ?? experience,
+      clear: () => setExperience(""),
+    });
   if (location) activeFilters.push({ label: location, clear: () => setLocation("") });
   if (search.trim())
     activeFilters.push({ label: `“${search.trim()}”`, clear: () => setSearch("") });
@@ -441,14 +480,14 @@ export function LiveJobsPage() {
           <select
             value={experience}
             onChange={(event) =>
-              setExperience(event.target.value as ExperienceLevel | "")
+              setExperience(event.target.value as ExperienceKey | "")
             }
             className={selectClass}
           >
             <option value="">Any experience</option>
-            {EXPERIENCE_LEVELS.map((level) => (
-              <option key={level} value={level}>
-                {level}
+            {EXPERIENCE_BUCKETS.map((bucket) => (
+              <option key={bucket.key} value={bucket.key}>
+                {bucket.label}
               </option>
             ))}
           </select>
@@ -547,7 +586,7 @@ export function LiveJobsPage() {
       ) : (
         <div className="space-y-3">
           {filteredJobs.map((job) => {
-            const level = experienceLevel(job.title);
+            const expLabel = experienceLabel(job);
             return (
               <div
                 key={job.id}
@@ -582,18 +621,28 @@ export function LiveJobsPage() {
                         <MapPin className="h-3 w-3" />
                         {normalizeLocation(job.location)}
                       </span>
-                      {level !== "Unspecified" && (
+                      {expLabel && (
                         <span className="inline-flex items-center gap-1">
                           <Sparkles className="h-3 w-3" />
-                          {level}
+                          {expLabel} exp
                         </span>
                       )}
-                      <span className="inline-flex items-center gap-1">
+                      <span
+                        className="inline-flex items-center gap-1"
+                        title={`Pulled from ${sourceLabel(job.source)}`}
+                      >
+                        <Building2 className="h-3 w-3" />
+                        {sourceLabel(job.source)}
+                      </span>
+                      <span
+                        className="inline-flex items-center gap-1"
+                        title="Post date reported by the source feed"
+                      >
                         <Clock className="h-3 w-3" />
                         posted {timeAgo(job.posted_at, now)}
                       </span>
                       <span
-                        className="inline-flex items-center gap-1 text-emerald-600"
+                        className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"
                         title="When this sync first picked up the listing"
                       >
                         <Radio className="h-3 w-3" />
