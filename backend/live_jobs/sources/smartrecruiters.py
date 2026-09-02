@@ -14,14 +14,21 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob, get_json
 
 API = "https://api.smartrecruiters.com/v1/companies/{token}/postings"
+DETAIL = "https://api.smartrecruiters.com/v1/companies/{token}/postings/{job_id}"
 VIEW = "https://jobs.smartrecruiters.com/{token}/{job_id}"
 
 _PAGES = 3
 _PAGE_SIZE = 100
+_ENRICH_MAX = 12
 
 
 def parse_jobs(payload: object, token: str = "") -> list[DiscoveredJob]:
@@ -91,6 +98,7 @@ class SmartRecruitersSource:
             if all(_is_old(job.posted_at) for job in batch):
                 break
 
+        _enrich(jobs, token)
         return jobs
 
 
@@ -98,3 +106,32 @@ def _is_old(posted_at: datetime | None) -> bool:
     if posted_at is None:
         return True
     return (datetime.utcnow() - posted_at).days > 3
+
+
+def _section_text(sections: object, *names: str) -> str:
+    if not isinstance(sections, dict):
+        return ""
+    parts = []
+    for name in names:
+        section = sections.get(name)
+        if isinstance(section, dict) and section.get("text"):
+            parts.append(str(section["text"]))
+    return " ".join(parts)
+
+
+def _enrich(jobs: list[DiscoveredJob], token: str) -> None:
+    """Fill .description for the newest in-window postings from the
+    per-posting detail endpoint (jobAd.sections). Best effort."""
+    fresh = [j for j in jobs if not _is_old(j.posted_at)][:_ENRICH_MAX]
+
+    for job in fresh:
+        if not job.external_job_id:
+            continue
+        data = get_json(DETAIL.format(token=token, job_id=job.external_job_id))
+        job_ad = data.get("jobAd") if isinstance(data, dict) else None
+        sections = job_ad.get("sections") if isinstance(job_ad, dict) else None
+        text = _section_text(
+            sections, "jobDescription", "qualifications", "additionalInformation"
+        )
+        if text:
+            job.description = clean_description(text)

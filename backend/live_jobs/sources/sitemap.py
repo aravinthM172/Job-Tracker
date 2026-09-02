@@ -23,7 +23,12 @@ from datetime import datetime
 
 import requests
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob
 
 _TIMEOUT = (5, 15)
@@ -121,11 +126,13 @@ def _scrape_one(
     except requests.RequestException:
         return None
 
+    description = None
     posting = _job_posting(html)
     if posting:
         title = clean_title(posting.get("title"))
         location = _location(posting)
         posted_at = parse_posted_at(posting.get("datePosted"))
+        description = clean_description(posting.get("description"))
         external = posting.get("identifier")
         if isinstance(external, dict):
             external = external.get("value")
@@ -148,6 +155,7 @@ def _scrape_one(
         location=location,
         job_url=url,
         posted_at=posted_at or parse_posted_at(lastmod),
+        description=description,
         source="sitemap",
     )
 

@@ -70,3 +70,16 @@ def get_json(
         return response.json()
     except ValueError:
         return None
+
+
+def get_text(url: str, *, params: dict[str, Any] | None = None) -> str | None:
+    """GET a URL and return the response body, or None on any failure."""
+    try:
+        response = requests.get(
+            url, params=params, headers=_HEADERS, timeout=_TIMEOUT
+        )
+    except requests.RequestException:
+        return None
+    if response.status_code != 200:
+        return None
+    return response.text

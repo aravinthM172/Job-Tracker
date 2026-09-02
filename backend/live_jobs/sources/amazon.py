@@ -10,7 +10,12 @@ than a shared ATS). `token` is an optional free-text query filter.
 
 from __future__ import annotations
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob, get_json
 
 SITE = "https://www.amazon.jobs"
@@ -42,6 +47,16 @@ def parse_jobs(payload: object) -> list[DiscoveredJob]:
                 ),
                 job_url=(SITE + path) if path else item.get("url_next_step"),
                 posted_at=parse_posted_at(item.get("posted_date")),
+                description=clean_description(
+                    " ".join(
+                        str(item.get(field) or "")
+                        for field in (
+                            "description",
+                            "basic_qualifications",
+                            "preferred_qualifications",
+                        )
+                    )
+                ),
                 source="amazon",
             )
         )

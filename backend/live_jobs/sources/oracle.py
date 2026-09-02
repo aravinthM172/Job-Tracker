@@ -13,7 +13,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob, get_json
 
 API = (
@@ -22,10 +27,16 @@ API = (
     "&finder=findReqs;siteNumber={site},limit={limit},offset={offset}"
     ",sortBy=POSTING_DATES_DESC"
 )
+DETAIL = (
+    "https://{host}/hcmRestApi/resources/latest/recruitingCEJobRequisitionDetails"
+    "?onlyData=true&expand=all"
+    "&finder=ById;Id=%22{job_id}%22,siteNumber={site}"
+)
 VIEW = "https://{host}/hcmUI/CandidateExperience/en/sites/{site}/job/{job_id}"
 
 _PAGES = 3
 _PAGE_SIZE = 25
+_ENRICH_MAX = 12
 
 
 def _requisitions(payload: object) -> list:
@@ -97,6 +108,7 @@ class OracleSource:
             if all(_is_old(job.posted_at) for job in batch):
                 break
 
+        _enrich(jobs, host, site)
         return jobs
 
 
@@ -104,3 +116,25 @@ def _is_old(posted_at: datetime | None) -> bool:
     if posted_at is None:
         return True
     return (datetime.utcnow() - posted_at).days > 3
+
+
+def _enrich(jobs: list[DiscoveredJob], host: str, site: str) -> None:
+    """Fill .description for the newest in-window reqs from the
+    per-requisition detail endpoint. Best effort."""
+    fresh = [j for j in jobs if not _is_old(j.posted_at)][:_ENRICH_MAX]
+
+    for job in fresh:
+        if not job.external_job_id:
+            continue
+        data = get_json(
+            DETAIL.format(host=host, site=site, job_id=job.external_job_id)
+        )
+        items = data.get("items") if isinstance(data, dict) else None
+        detail = items[0] if isinstance(items, list) and items else None
+        if isinstance(detail, dict):
+            text = " ".join(
+                str(detail.get(field) or "")
+                for field in ("ExternalDescriptionStr", "ExternalQualificationsStr")
+            )
+            if text.strip():
+                job.description = clean_description(text)

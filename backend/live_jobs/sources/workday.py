@@ -15,14 +15,23 @@ from __future__ import annotations
 import re
 from datetime import datetime
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob, get_json
 
 CXS = "https://{tenant}.{host}.myworkdayjobs.com/wday/cxs/{tenant}/{site}/jobs"
+DETAIL = "https://{tenant}.{host}.myworkdayjobs.com/wday/cxs/{tenant}/{site}{path}"
 VIEW = "https://{tenant}.{host}.myworkdayjobs.com/en-US/{site}{path}"
 
 _PAGES = 3
 _PAGE_SIZE = 20
+# per company per cycle - the JD detail is one extra GET each, and this
+# source already runs on the slow (every-4th-cycle) cadence.
+_ENRICH_MAX = 12
 _REQ_ID = re.compile(r"_([A-Za-z0-9][A-Za-z0-9.\-]*)$")
 
 
@@ -106,6 +115,7 @@ class WorkdaySource:
             if all(_is_old(job.posted_at) for job in batch):
                 break
 
+        _enrich(jobs, tenant, host, site)
         return jobs
 
 
@@ -113,3 +123,28 @@ def _is_old(posted_at: datetime | None) -> bool:
     if posted_at is None:
         return True
     return (datetime.utcnow() - posted_at).days > 3
+
+
+def _path_from_url(job_url: str | None, site: str) -> str | None:
+    if not job_url:
+        return None
+    marker = f"/en-US/{site}"
+    _, sep, path = job_url.partition(marker)
+    return path if sep else None
+
+
+def _enrich(jobs: list[DiscoveredJob], tenant: str, host: str, site: str) -> None:
+    """Fill .description for the newest in-window jobs from the CXS
+    per-job detail endpoint (one GET each). Best effort - skips silently."""
+    fresh = [j for j in jobs if not _is_old(j.posted_at)][:_ENRICH_MAX]
+
+    for job in fresh:
+        path = _path_from_url(job.job_url, site)
+        if not path:
+            continue
+        data = get_json(
+            DETAIL.format(tenant=tenant, host=host, site=site, path=path)
+        )
+        info = data.get("jobPostingInfo") if isinstance(data, dict) else None
+        if isinstance(info, dict):
+            job.description = clean_description(info.get("jobDescription"))

@@ -41,3 +41,29 @@ def test_workday_parse_tolerates_garbage():
 
 def test_workday_bad_token_returns_nothing():
     assert workday.WorkdaySource().discover("not-a-valid-token") == []
+
+
+def test_workday_enrich_fills_description(monkeypatch):
+    from live_jobs.sources.base import DiscoveredJob
+
+    job = DiscoveredJob(
+        company="",
+        external_job_id="JR1",
+        title="Staff Engineer",
+        location="Bengaluru",
+        job_url=(
+            "https://nvidia.wd5.myworkdayjobs.com/en-US/Site/job/India/"
+            "Staff-Engineer_JR1"
+        ),
+        posted_at=datetime.utcnow(),
+        source="workday",
+    )
+
+    monkeypatch.setattr(
+        workday,
+        "get_json",
+        lambda url: {"jobPostingInfo": {"jobDescription": "<p>Need 7+ years.</p>"}},
+    )
+    workday._enrich([job], "nvidia", "wd5", "Site")
+
+    assert job.description == "Need 7+ years."

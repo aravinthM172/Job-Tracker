@@ -22,8 +22,20 @@ import html as _html
 import re
 from datetime import datetime, timedelta
 
-from ..normalize import clean_location, clean_title, parse_posted_at
-from .base import DiscoveredJob, get_json
+import json as _json
+
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
+from .base import DiscoveredJob, get_json, get_text
+
+_ENRICH_MAX = 12
+_LD_BLOCK = re.compile(
+    r'<script[^>]+application/ld\+json[^>]*>(.*?)</script>', re.S | re.I
+)
 
 _PARAMS = {
     "ActiveFacetID": "0",
@@ -134,7 +146,34 @@ class RadancySource:
 
             jobs.extend(batch)
 
-        return _fill_undated(jobs)
+        jobs = _fill_undated(jobs)
+        _enrich(jobs)
+        return jobs
+
+
+def _enrich(jobs: list[DiscoveredJob]) -> None:
+    """Lift JobPosting.description from each job page's JSON-LD. Best effort."""
+    for job in jobs[:_ENRICH_MAX]:
+        if not job.job_url:
+            continue
+        html = get_text(job.job_url)
+        if not html:
+            continue
+        for block in _LD_BLOCK.findall(html):
+            try:
+                data = _json.loads(block.strip())
+            except (ValueError, TypeError):
+                continue
+            for entry in data if isinstance(data, list) else [data]:
+                if (
+                    isinstance(entry, dict)
+                    and entry.get("@type") == "JobPosting"
+                    and entry.get("description")
+                ):
+                    job.description = clean_description(entry["description"])
+                    break
+            if job.description:
+                break
 
 
 def _fill_undated(jobs: list[DiscoveredJob]) -> list[DiscoveredJob]:

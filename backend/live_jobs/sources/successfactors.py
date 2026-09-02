@@ -12,14 +12,20 @@ not-seen sweep.
 
 from __future__ import annotations
 
+import json
 import re
 
 import requests
 
-from ..normalize import clean_location, clean_title
+from ..normalize import clean_description, clean_location, clean_title
 from .base import DiscoveredJob
 
 _TIMEOUT = (5, 20)
+_ENRICH_MAX = 12
+_JSONLD = re.compile(
+    r'<script[^>]+type="application/ld\+json"[^>]*>(.*?)</script>',
+    re.DOTALL | re.IGNORECASE,
+)
 _UA = (
     "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
@@ -104,7 +110,37 @@ class SuccessFactorsSource:
             if len(jobs) >= _MAX:
                 break
 
-        return jobs[:_MAX]
+        jobs = jobs[:_MAX]
+        _enrich(jobs)
+        return jobs
+
+
+def _jsonld_description(html: str) -> str | None:
+    """Pull JobPosting.description out of a CSB job page's JSON-LD."""
+    for block in _JSONLD.findall(html or ""):
+        try:
+            data = json.loads(block.strip())
+        except (ValueError, TypeError):
+            continue
+        candidates = data if isinstance(data, list) else [data]
+        for entry in candidates:
+            if (
+                isinstance(entry, dict)
+                and entry.get("@type") == "JobPosting"
+                and entry.get("description")
+            ):
+                return str(entry["description"])
+    return None
+
+
+def _enrich(jobs: list[DiscoveredJob]) -> None:
+    """Fetch each job page and lift the JSON-LD description. Best effort."""
+    for job in jobs[:_ENRICH_MAX]:
+        if not job.job_url:
+            continue
+        html = _raw(job.job_url)
+        if html:
+            job.description = clean_description(_jsonld_description(html))
 
 
 def _raw(url: str) -> str | None:
