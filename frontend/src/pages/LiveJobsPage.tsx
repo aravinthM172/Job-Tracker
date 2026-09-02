@@ -4,6 +4,7 @@ import {
   Clock,
   ExternalLink,
   MapPin,
+  Radio,
   RefreshCw,
   Search,
   SlidersHorizontal,
@@ -302,11 +303,14 @@ export function LiveJobsPage() {
     return sorted;
   }, [jobs, search, company, experience, location, statusFilter, sort]);
 
-  const freshestPostedAt = useMemo(() => {
+  // "Freshest" = when discovery most recently *found* a new listing.
+  // posted_at is unreliable for a freshness read - many ATS feeds only
+  // give a date (shown as midnight), and a couple give no date at all -
+  // whereas first_seen_at is stamped by our own 5-minute sync.
+  const newestListingAt = useMemo(() => {
     let newest = 0;
     for (const job of jobs) {
-      if (!job.posted_at) continue;
-      const t = new Date(job.posted_at).getTime();
+      const t = new Date(job.first_seen_at).getTime();
       if (!Number.isNaN(t) && t > newest) newest = t;
     }
     return newest || null;
@@ -353,8 +357,8 @@ export function LiveJobsPage() {
             </span>
             <span className="text-slate-500">
               {" · "}
-              {freshestPostedAt
-                ? `freshest ${timeAgo(new Date(freshestPostedAt).toISOString(), now)}`
+              {newestListingAt
+                ? `newest found ${timeAgo(new Date(newestListingAt).toISOString(), now)}`
                 : "no postings yet"}
             </span>
           </div>
@@ -587,6 +591,13 @@ export function LiveJobsPage() {
                       <span className="inline-flex items-center gap-1">
                         <Clock className="h-3 w-3" />
                         posted {timeAgo(job.posted_at, now)}
+                      </span>
+                      <span
+                        className="inline-flex items-center gap-1 text-emerald-600"
+                        title="When this sync first picked up the listing"
+                      >
+                        <Radio className="h-3 w-3" />
+                        found {timeAgo(job.first_seen_at, now)}
                       </span>
                     </div>
                   </div>
