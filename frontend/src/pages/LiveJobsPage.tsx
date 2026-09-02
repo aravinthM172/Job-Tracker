@@ -116,24 +116,6 @@ function normalizeLocation(loc: string | null): string {
   return loc.split(/[,/|]/)[0].trim();
 }
 
-const AVATAR_COLORS = [
-  "bg-blue-100 text-blue-700",
-  "bg-emerald-100 text-emerald-700",
-  "bg-amber-100 text-amber-700",
-  "bg-violet-100 text-violet-700",
-  "bg-rose-100 text-rose-700",
-  "bg-cyan-100 text-cyan-700",
-  "bg-indigo-100 text-indigo-700",
-];
-
-function avatarColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < name.length; i += 1) {
-    hash = (hash * 31 + name.charCodeAt(i)) >>> 0;
-  }
-  return AVATAR_COLORS[hash % AVATAR_COLORS.length];
-}
-
 // Careers pages usually live on an ATS host, not the employer's own
 // domain - fall back to a slug of the company name for those.
 const ATS_HOSTS = [
@@ -183,21 +165,33 @@ function companyDomain(job: LiveJob): string {
   return slug ? `${slug}.com` : "";
 }
 
+function logoCandidates(domain: string): string[] {
+  if (!domain) return [];
+  return [
+    // square site icon, 128px - the crispest square mark that's free and
+    // keyless. (Wordmark-logo services return wide white-background
+    // images that look wrong in a 40px tile, so we stick to favicons.)
+    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
+  ];
+}
+
 function CompanyAvatar({ job }: { job: LiveJob }) {
-  const domain = companyDomain(job);
-  const [failed, setFailed] = useState(false);
+  const candidates = logoCandidates(companyDomain(job));
+  const [index, setIndex] = useState(0);
+  const src = candidates[index];
 
   return (
-    <div
-      className={`relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-semibold ${avatarColor(job.company)}`}
-    >
+    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
       {job.company.slice(0, 2).toUpperCase()}
-      {domain && !failed && (
+      {src && (
         <img
-          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+          src={src}
           alt=""
-          onError={() => setFailed(true)}
-          className="absolute inset-0 m-auto h-6 w-6 rounded bg-white dark:bg-slate-900 object-contain"
+          onError={() => setIndex((i) => i + 1)}
+          // white plate in light mode so pale logos read; transparent in
+          // dark mode so it blends into the tile instead of a white patch
+          className="absolute inset-0 h-full w-full bg-white object-contain p-1 dark:bg-transparent"
         />
       )}
     </div>
