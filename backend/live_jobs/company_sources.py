@@ -167,6 +167,13 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     # -- Sitemap + JobPosting JSON-LD (token = sitemap URL) ------
     "Intuit": [("sitemap", "https://jobs.intuit.com/sitemap.xml")],
     "OpenText": [("sitemap", "https://careers.opentext.com/sitemap.xml")],
+    "Qualcomm": [
+        (
+            "sitemap",
+            "https://careers.qualcomm.com/careers/sitemap.xml?domain=qualcomm.com",
+        )
+    ],
+    "AMD": [("sitemap", "https://careers.amd.com/sitemap.xml")],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields

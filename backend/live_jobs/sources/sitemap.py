@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 import requests
@@ -76,6 +77,13 @@ def _job_posting(html: str) -> dict | None:
     return None
 
 
+def _text(value: object) -> str | None:
+    """schema.org address parts are sometimes {"name": ...} objects."""
+    if isinstance(value, dict):
+        value = value.get("name")
+    return value if isinstance(value, str) and value.strip() else None
+
+
 def _location(posting: dict) -> str | None:
     loc = posting.get("jobLocation")
     if isinstance(loc, list):
@@ -85,17 +93,12 @@ def _location(posting: dict) -> str | None:
     addr = loc.get("address")
     if not isinstance(addr, dict):
         return None
-    return clean_location(
-        ", ".join(
-            part
-            for part in (
-                addr.get("addressLocality"),
-                addr.get("addressRegion"),
-                addr.get("addressCountry"),
-            )
-            if part
-        )
-    )
+    parts = [
+        _text(addr.get("addressLocality")),
+        _text(addr.get("addressRegion")),
+        _text(addr.get("addressCountry")),
+    ]
+    return clean_location(", ".join(p for p in parts if p))
 
 
 def _select(entries: list[tuple[str, str]]) -> list[tuple[str, str]]:
@@ -110,53 +113,57 @@ def _select(entries: list[tuple[str, str]]) -> list[tuple[str, str]]:
     return picked[:_MAX_DETAIL]
 
 
+def _scrape_one(
+    session: requests.Session, url: str, lastmod: str
+) -> DiscoveredJob | None:
+    try:
+        html = session.get(url, timeout=_TIMEOUT).text
+    except requests.RequestException:
+        return None
+
+    posting = _job_posting(html)
+    if posting:
+        title = clean_title(posting.get("title"))
+        location = _location(posting)
+        posted_at = parse_posted_at(posting.get("datePosted"))
+        external = posting.get("identifier")
+        if isinstance(external, dict):
+            external = external.get("value")
+    else:
+        og = _OG_TITLE.search(html)
+        title = clean_title(og.group(1)) if og else ""
+        location = None
+        posted_at = None
+        external = None
+
+    if not title:
+        return None
+
+    return DiscoveredJob(
+        company="",
+        external_job_id=(
+            str(external) if external else url.split("?")[0].rstrip("/").rsplit("/", 1)[-1]
+        ),
+        title=title,
+        location=location,
+        job_url=url,
+        posted_at=posted_at or parse_posted_at(lastmod),
+        source="sitemap",
+    )
+
+
 def discover(token: str) -> list[DiscoveredJob]:
     session = requests.Session()
     session.headers.update({"User-Agent": _UA})
 
-    jobs: list[DiscoveredJob] = []
+    picked = _select(_sitemap_urls(session, token))
+    if not picked:
+        return []
 
-    for url, lastmod in _select(_sitemap_urls(session, token)):
-        try:
-            html = session.get(url, timeout=_TIMEOUT).text
-        except requests.RequestException:
-            continue
+    with ThreadPoolExecutor(max_workers=6) as pool:
+        results = pool.map(lambda e: _scrape_one(session, e[0], e[1]), picked)
 
-        posting = _job_posting(html)
-        if posting:
-            title = clean_title(posting.get("title"))
-            location = _location(posting)
-            posted_at = parse_posted_at(posting.get("datePosted"))
-            external = posting.get("identifier")
-            if isinstance(external, dict):
-                external = external.get("value")
-        else:
-            og = _OG_TITLE.search(html)
-            title = clean_title(og.group(1)) if og else ""
-            location = None
-            posted_at = None
-            external = None
-
-        if not title:
-            continue
-
-        jobs.append(
-            DiscoveredJob(
-                company="",
-                external_job_id=(
-                    str(external)
-                    if external
-                    else url.rstrip("/").rsplit("/", 1)[-1]
-                ),
-                title=title,
-                location=location,
-                job_url=url,
-                posted_at=posted_at or parse_posted_at(lastmod),
-                source="sitemap",
-            )
-        )
-
-    return jobs
+    return [job for job in results if job is not None]
 
 
 class SitemapSource:
