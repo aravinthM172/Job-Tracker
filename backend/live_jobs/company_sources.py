@@ -149,6 +149,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Bosch Global Software Technologies": [
         ("smartrecruiters", "BoschGroup")
     ],
+    "PhonePe": [("smartrecruiters", "PHONEPELIMITED")],
     # -- Radancy / TalentBrew (token = site base URL) --------------
     "Synopsys": [("radancy", "https://careers.synopsys.com")],
     "Arm": [("radancy", "https://careers.arm.com")],
