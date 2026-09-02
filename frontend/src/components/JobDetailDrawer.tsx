@@ -124,7 +124,7 @@ export function JobDetailDrawer({ jobId, onClose }: JobDetailDrawerProps) {
                 <ol className="space-y-4 border-l border-slate-200 dark:border-slate-800 pl-4">
                   {job.events?.map((event) => (
                     <li key={event.id} className="relative">
-                      <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-slate-400 ring-1 ring-slate-300" />
+                      <span className="absolute -left-[21px] top-1 h-2.5 w-2.5 rounded-full border-2 border-white bg-slate-400 ring-1 ring-slate-300 dark:border-slate-900 dark:bg-slate-500 dark:ring-slate-700" />
                       <div className="flex items-center justify-between gap-2">
                         <StatusBadge status={event.event_type as Job["status"]} />
                         <span className="whitespace-nowrap text-xs text-slate-400 dark:text-slate-500">
