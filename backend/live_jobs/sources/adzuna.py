@@ -27,9 +27,23 @@ _PAGES = 3
 
 
 def _targets() -> dict[str, str]:
+    """Companies to back-fill: the target universe MINUS anything that
+    already has a first-party feed (so Adzuna never double-lists). Override
+    the whole set with ``ADZUNA_COMPANIES`` (comma-separated)."""
     raw = os.getenv("ADZUNA_COMPANIES")
-    names = [n.strip() for n in raw.split(",")] if raw else list(COMPANIES)
-    return {normalize_company(n): n for n in names if n.strip()}
+    if raw:
+        names = [n.strip() for n in raw.split(",") if n.strip()]
+    else:
+        from ..company_sources import COMPANY_SOURCES
+
+        covered = {
+            normalize_company(c)
+            for c, feeds in COMPANY_SOURCES.items()
+            if any(s != "adzuna" for s, _ in feeds)
+        }
+        names = [c for c in COMPANIES if normalize_company(c) not in covered]
+
+    return {normalize_company(n): n for n in names}
 
 
 def _match(display: str | None, targets: dict[str, str]) -> str | None:
