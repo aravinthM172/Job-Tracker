@@ -52,9 +52,14 @@ def _fetch_company(company: str, feeds: list[tuple[str, str]]) -> list:
         except Exception:
             found = []
 
+        # aggregator sources (adzuna) attribute each job to its own
+        # company; everything else is keyed by the company we asked for
+        keeps_company = getattr(source, "keeps_company", False)
         for job in found:
-            job.company = company
-            jobs.append(job)
+            if not keeps_company:
+                job.company = company
+            if job.company:
+                jobs.append(job)
 
     return jobs
 

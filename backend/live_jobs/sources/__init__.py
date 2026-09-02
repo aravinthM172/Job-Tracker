@@ -1,5 +1,6 @@
 """Registry of Live Jobs source adapters, keyed by source name."""
 
+from .adzuna import AdzunaSource
 from .amazon import AmazonSource
 from .ashby import AshbySource
 from .base import DiscoveredJob, JobSource
@@ -29,6 +30,7 @@ HEAVY_SOURCES = {
     "sitemap",
     "browser",
     "successfactors",
+    "adzuna",  # external quota - keep off the every-cycle path
 }
 
 # Sources behind aggressive anti-scraping (Google / Meta), or that spin
@@ -43,6 +45,7 @@ DATELESS_SOURCES = {"swiggy", "meta", "google", "browser", "successfactors"}
 SOURCES: dict[str, JobSource] = {
     source.name: source
     for source in (
+        AdzunaSource(),
         GreenhouseSource(),
         LeverSource(),
         AshbySource(),

@@ -211,6 +211,10 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "PayU": [
         ("successfactors", "https://careers.payu.in/search/?q=&locationsearch=India")
     ],
+    # -- Adzuna aggregator back-fill (one broad Bengaluru query;
+    # attributes each hit to its own company - no-op without an API key,
+    # see sources/adzuna.py). Not a real company, just a feed slot.
+    "Adzuna (Bengaluru back-fill)": [("adzuna", "")],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields
