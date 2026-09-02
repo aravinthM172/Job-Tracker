@@ -21,9 +21,9 @@ def list_live_jobs(
     company: str | None = Query(default=None),
     db: Session = Depends(get_db),
 ):
-    return get_live_jobs(db, company=company)
+    return get_live_jobs(db, company=company, only_targets=True)
 
 
 @router.get("/summary", response_model=LiveJobsSummary)
 def live_jobs_summary(db: Session = Depends(get_db)):
-    return get_summary(db)
+    return get_summary(db, only_targets=True)

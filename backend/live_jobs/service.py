@@ -15,6 +15,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import and_, delete, func, or_, select
 from sqlalchemy.orm import Session
 
+from .companies import is_target_company
 from .models import LiveJob
 
 LOOKBACK_HOURS = 48
@@ -195,6 +196,7 @@ def get_live_jobs(
     db: Session,
     *,
     company: str | None = None,
+    only_targets: bool = False,
 ) -> list[LiveJob]:
     cutoff = live_job_cutoff()
 
@@ -208,10 +210,13 @@ def get_live_jobs(
 
     query = query.order_by(LiveJob.posted_at.desc())
 
-    return list(db.scalars(query).all())
+    rows = list(db.scalars(query).all())
+    if only_targets:
+        rows = [row for row in rows if is_target_company(row.company)]
+    return rows
 
 
-def get_summary(db: Session) -> dict[str, int]:
+def get_summary(db: Session, *, only_targets: bool = False) -> dict[str, int]:
     cutoff = live_job_cutoff()
 
     jobs = db.scalars(
@@ -220,6 +225,9 @@ def get_summary(db: Session) -> dict[str, int]:
             LiveJob.posted_at >= cutoff,
         )
     ).all()
+
+    if only_targets:
+        jobs = [job for job in jobs if is_target_company(job.company)]
 
     summary = {"total": len(jobs), "new": 0, "live": 0, "reposted": 0, "closed": 0}
 

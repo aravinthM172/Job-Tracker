@@ -39,6 +39,7 @@ def run_discovery(monkeypatch, db):
         monkeypatch.setattr(
             discovery, "COMPANY_SOURCES", {"Acme": [("fake", "acme")]}
         )
+        monkeypatch.setattr(discovery, "is_target_company", lambda name: True)
         return discovery.discover_all_companies(db)
 
     return _run

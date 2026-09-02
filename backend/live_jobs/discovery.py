@@ -17,6 +17,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from sqlalchemy.orm import Session
 
+from .companies import is_target_company
 from .company_sources import COMPANY_SOURCES
 from .config import location_filter, location_matches
 from .normalize import (
@@ -58,6 +59,8 @@ def _fetch_company(company: str, feeds: list[tuple[str, str]]) -> list:
         for job in found:
             if not keeps_company:
                 job.company = company
+            elif not is_target_company(job.company):
+                continue  # aggregator hit for a company outside companies.py
             if job.company:
                 jobs.append(job)
 
@@ -138,6 +141,7 @@ def discover_all_companies(db: Session) -> dict[str, int]:
         "guarded": int(run_guarded),
         "companies": 0,
         "fetched": 0,
+        "skipped_off_list": 0,
         "skipped_old": 0,
         "skipped_invalid": 0,
         "skipped_location": 0,
@@ -148,6 +152,11 @@ def discover_all_companies(db: Session) -> dict[str, int]:
 
     work = []
     for company, feeds in COMPANY_SOURCES.items():
+        # companies.py is the allowlist - skip ATS slugs for anything
+        # outside it (aggregator hits are re-checked per job in _fetch_company)
+        if not is_target_company(company):
+            counts["skipped_off_list"] += 1
+            continue
         selected = _select_feeds(feeds, run_heavy, run_guarded)
         if selected:
             work.append((company, selected))

@@ -43,6 +43,15 @@ def test_get_live_jobs_company_filter_is_case_insensitive(db):
     assert len(get_live_jobs(db, company="acme")) == 1
 
 
+def test_only_targets_filters_off_list_companies(db):
+    add(db, company="Google", external_job_id="g")
+    add(db, company="Autodesk", external_job_id="a")
+
+    assert {j.company for j in get_live_jobs(db)} == {"Google", "Autodesk"}
+    assert [j.company for j in get_live_jobs(db, only_targets=True)] == ["Google"]
+    assert get_summary(db, only_targets=True)["total"] == 1
+
+
 def test_summary_counts_match_list(db):
     add(db, external_job_id="a")
     add(db, external_job_id="b")

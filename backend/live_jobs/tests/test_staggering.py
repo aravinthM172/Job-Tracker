@@ -46,6 +46,7 @@ def wired(monkeypatch):
             "BigCo": [("workday", "bigco/wd1/x")],
         },
     )
+    monkeypatch.setattr(discovery, "is_target_company", lambda name: True)
     monkeypatch.setattr(discovery, "_cycle", 0)
     return light, heavy
 
@@ -82,6 +83,7 @@ def wired_guarded(monkeypatch):
             "Meta": [("meta", "")],
         },
     )
+    monkeypatch.setattr(discovery, "is_target_company", lambda name: True)
     monkeypatch.setattr(discovery, "_cycle", 0)
     return light, guarded
 

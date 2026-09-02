@@ -1,3 +1,5 @@
+from .normalize import normalize_company
+
 COMPANIES = [
     "Google",
     "Microsoft",
@@ -152,3 +154,28 @@ COMPANIES = [
     "Hasura",
     "Toast",
 ]
+
+
+# ``companies.py`` is the allowlist: a posting is only shown on the
+# dashboard (and only discovered) if its company matches a name here.
+# ``company_sources.py`` may carry extra ATS slugs for companies outside
+# this list - those are ignored.
+_TARGET_KEYS = frozenset(normalize_company(c) for c in COMPANIES)
+
+
+def is_target_company(name: str | None) -> bool:
+    """True if ``name`` is one of the ``COMPANIES`` above.
+
+    Tolerates a descriptive prefix/suffix on either side so the ATS's
+    own naming still matches - e.g. "KPMG Global Services" ~ "KPMG",
+    "Samsung" ~ "Samsung R&D Institute India".
+    """
+    key = normalize_company(name)
+    if not key:
+        return False
+    if key in _TARGET_KEYS:
+        return True
+    return any(
+        key.startswith(f"{target} ") or target.startswith(f"{key} ")
+        for target in _TARGET_KEYS
+    )
