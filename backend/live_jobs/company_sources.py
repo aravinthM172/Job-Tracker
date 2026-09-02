@@ -164,6 +164,9 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     # -- Darwinbox (token = "tenant|companyId") ------------------
     "Moneyview": [("darwinbox", "moneyview|main")],
     "Zepto": [("darwinbox", "zepto|main")],
+    # -- Sitemap + JobPosting JSON-LD (token = sitemap URL) ------
+    "Intuit": [("sitemap", "https://jobs.intuit.com/sitemap.xml")],
+    "OpenText": [("sitemap", "https://careers.opentext.com/sitemap.xml")],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields
