@@ -8,7 +8,12 @@ Titles sometimes carry a leading space; unlisted postings are skipped.
 
 from __future__ import annotations
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob, get_json
 
 URL = "https://api.ashbyhq.com/posting-api/job-board/{token}"
@@ -32,6 +37,9 @@ def parse_jobs(payload: object) -> list[DiscoveredJob]:
                 location=clean_location(item.get("location")),
                 job_url=item.get("jobUrl") or item.get("applyUrl"),
                 posted_at=parse_posted_at(item.get("publishedAt")),
+                description=clean_description(
+                    item.get("descriptionPlain") or item.get("descriptionHtml")
+                ),
                 source="ashby",
             )
         )

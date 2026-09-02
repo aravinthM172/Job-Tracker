@@ -8,7 +8,12 @@ Unauthenticated. Returns a JSON array. `token` is the Lever site slug
 
 from __future__ import annotations
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob, get_json
 
 URL = "https://api.lever.co/v0/postings/{token}"
@@ -26,6 +31,19 @@ def parse_jobs(payload: object) -> list[DiscoveredJob]:
 
         categories = item.get("categories") or {}
 
+        # the list feed carries the full ad already - plain text if
+        # present, else the HTML body, plus the "lists" (Requirements
+        # etc.) which is usually where the experience line lives.
+        list_text = " ".join(
+            f"{block.get('text', '')} {block.get('content', '')}"
+            for block in (item.get("lists") or [])
+            if isinstance(block, dict)
+        )
+        description = (
+            f"{item.get('descriptionPlain') or item.get('description') or ''} "
+            f"{list_text}"
+        )
+
         jobs.append(
             DiscoveredJob(
                 company="",
@@ -34,6 +52,7 @@ def parse_jobs(payload: object) -> list[DiscoveredJob]:
                 location=clean_location(categories.get("location")),
                 job_url=item.get("hostedUrl"),
                 posted_at=parse_posted_at(item.get("createdAt")),
+                description=clean_description(description),
                 source="lever",
             )
         )

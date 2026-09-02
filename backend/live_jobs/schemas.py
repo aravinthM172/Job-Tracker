@@ -24,6 +24,11 @@ class LiveJobResponse(BaseModel):
     reposted_at: datetime | None
     status: str
 
+    # parsed from title + description at read time (see routes.py) -
+    # "5+ years" -> (5, None), "3-5 years" -> (3, 5), unknown -> (None, None)
+    experience_min: int | None = None
+    experience_max: int | None = None
+
 
 class LiveJobsSummary(BaseModel):
     total: int

@@ -1,10 +1,12 @@
 from datetime import datetime
 
 from live_jobs.normalize import (
+    clean_description,
     clean_location,
     clean_title,
     fallback_external_id,
     normalize_company,
+    parse_experience,
     parse_posted_at,
 )
 
@@ -43,6 +45,34 @@ def test_parse_posted_at_unparseable():
     assert parse_posted_at("") is None
     assert parse_posted_at("someday soon") is None
     assert parse_posted_at(None) is None
+
+
+def test_clean_description_unescapes_and_strips():
+    raw = "&lt;p&gt;Build &amp; ship.&lt;/p&gt;  <b>Now</b>"
+    assert clean_description(raw) == "Build & ship. Now"
+    assert clean_description("") is None
+    assert clean_description("x" * 5000, max_len=100) == "x" * 100
+
+
+def test_parse_experience_range():
+    assert parse_experience("Needs 3-5 years of experience") == (3, 5)
+    assert parse_experience("3 to 8 yrs relevant experience") == (3, 8)
+
+
+def test_parse_experience_minimum():
+    assert parse_experience("Senior Engineer — 8+ years") == (8, None)
+    assert parse_experience("Minimum 5 years of experience required") == (5, None)
+
+
+def test_parse_experience_ignores_noise():
+    assert parse_experience("Joined 2 years ago; a 4 year degree") == (None, None)
+    assert parse_experience("100 years of heritage") == (None, None)
+    assert parse_experience(None) == (None, None)
+
+
+def test_parse_experience_prefers_first_real_signal():
+    text = "About us: 50 years strong. Requirements: 4+ years experience."
+    assert parse_experience(text) == (4, None)
 
 
 def test_fallback_external_id_is_stable_and_prefixed():

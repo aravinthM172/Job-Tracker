@@ -8,7 +8,12 @@ careers page fetches. `token` is the board slug (e.g. "gitlab").
 
 from __future__ import annotations
 
-from ..normalize import clean_location, clean_title, parse_posted_at
+from ..normalize import (
+    clean_description,
+    clean_location,
+    clean_title,
+    parse_posted_at,
+)
 from .base import DiscoveredJob, get_json
 
 URL = "https://boards-api.greenhouse.io/v1/boards/{token}/jobs"
@@ -37,6 +42,7 @@ def parse_jobs(payload: object) -> list[DiscoveredJob]:
                 posted_at=parse_posted_at(
                     item.get("first_published") or item.get("updated_at")
                 ),
+                description=clean_description(item.get("content")),
                 source="greenhouse",
             )
         )

@@ -7,6 +7,7 @@ but kept separate so importing this never drags in the FastAPI app.
 from __future__ import annotations
 
 import hashlib
+import html
 import re
 from datetime import datetime, timedelta, timezone
 from email.utils import parsedate_to_datetime
@@ -34,6 +35,71 @@ def clean_location(value: str | None) -> str | None:
         return None
     text = _WS.sub(" ", _TAG.sub(" ", value)).strip(" ,;|-")
     return text or None
+
+
+def clean_description(value: str | None, max_len: int = 4000) -> str | None:
+    """Strip HTML, collapse whitespace, cap length. Job ad bodies come
+    through as HTML from most feeds and we only keep them to parse an
+    experience requirement out, so a few KB is plenty."""
+    if not value:
+        return None
+    unescaped = html.unescape(str(value))
+    text = _WS.sub(" ", _TAG.sub(" ", unescaped)).strip()
+    if not text:
+        return None
+    return text[:max_len]
+
+
+# Experience requirement, e.g. "5+ years", "3-5 years of experience",
+# "minimum 8 years". Deliberately conservative - a bare "2 years" only
+# counts when "experience" follows soon after, so "2 years ago" / "a
+# 4 year degree" don't register.
+_EXP_RANGE = re.compile(
+    r"(?<!\d)(\d{1,2})\s*\+?\s*(?:-|–|—|to)\s*(\d{1,2})(?!\d)\s*\+?\s*(?:years?|yrs?)\b",
+    re.IGNORECASE,
+)
+_EXP_MIN = re.compile(
+    r"(?<!\d)(\d{1,2})(?!\d)\s*\+\s*(?:years?|yrs?)\b",
+    re.IGNORECASE,
+)
+_EXP_PLAIN = re.compile(
+    r"(?<!\d)(\d{1,2})(?!\d)\s*(?:years?|yrs?)(?:['’]?)\s*"
+    r"(?:of\s+)?(?:[a-z]+\s+){0,3}experience",
+    re.IGNORECASE,
+)
+
+
+def parse_experience(text: str | None) -> tuple[int | None, int | None]:
+    """(min_years, max_years) parsed from a title + description blob.
+
+    ``(3, 5)`` for a range, ``(5, None)`` for "5+ years" or a lone
+    "5 years experience", ``(None, None)`` when nothing usable is found.
+    """
+    if not text:
+        return (None, None)
+
+    def _ok(*values: int) -> bool:
+        return all(0 <= v <= 40 for v in values)
+
+    match = _EXP_RANGE.search(text)
+    if match:
+        lo, hi = int(match.group(1)), int(match.group(2))
+        if _ok(lo, hi) and lo <= hi:
+            return (lo, hi)
+
+    match = _EXP_MIN.search(text)
+    if match:
+        lo = int(match.group(1))
+        if _ok(lo):
+            return (lo, None)
+
+    match = _EXP_PLAIN.search(text)
+    if match:
+        lo = int(match.group(1))
+        if _ok(lo):
+            return (lo, None)
+
+    return (None, None)
 
 
 def normalize_company(value: str | None) -> str:
