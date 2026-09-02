@@ -147,7 +147,58 @@ const ATS_HOSTS = [
   "phenom.com",
 ];
 
+// Company -> real domain, for the many cases where a name slug isn't the
+// domain ("Walmart Global Tech" != walmartglobaltech.com). Keyed by the
+// lower-cased company name. Anything not here falls back to the slug.
+const COMPANY_DOMAINS: Record<string, string> = {
+  "walmart global tech": "walmart.com",
+  "sap labs india": "sap.com",
+  "samsung r&d institute india": "samsung.com",
+  "bosch global software technologies": "bosch.com",
+  "kpmg global services": "kpmg.com",
+  kpmg: "kpmg.com",
+  "mercedes-benz r&d india": "mercedes-benz.com",
+  "bmw group india": "bmwgroup.com",
+  "jpmorgan chase": "jpmorganchase.com",
+  "goldman sachs": "goldmansachs.com",
+  "morgan stanley": "morganstanley.com",
+  "bank of america": "bankofamerica.com",
+  "wells fargo": "wellsfargo.com",
+  "standard chartered": "sc.com",
+  "deutsche bank": "db.com",
+  "state street": "statestreet.com",
+  "s&p global": "spglobal.com",
+  "american express": "americanexpress.com",
+  "capital one": "capitalone.com",
+  "cadence design systems": "cadence.com",
+  "motorola solutions": "motorolasolutions.com",
+  "ge vernova": "gevernova.com",
+  "volvo group": "volvogroup.com",
+  "commonwealth bank of australia": "commbank.com.au",
+  "natwest group": "natwestgroup.com",
+  "societe generale": "societegenerale.com",
+  "red hat": "redhat.com",
+  "dell technologies": "dell.com",
+  "publicis sapient": "publicissapient.com",
+  "mckinsey & company": "mckinsey.com",
+  "hashedin by deloitte": "hashedin.com",
+  "tiger analytics": "tigeranalytics.com",
+  "fractal analytics": "fractal.ai",
+  "navi technologies": "navi.com",
+  "pine labs": "pinelabs.com",
+  "cashfree payments": "cashfree.com",
+  "yellow.ai": "yellow.ai",
+  "observe.ai": "observe.ai",
+  "sarvam ai": "sarvam.ai",
+  sharechat: "sharechat.com",
+  "bank of new york": "bny.com",
+  "arm": "arm.com",
+};
+
 function companyDomain(job: LiveJob): string {
+  const mapped = COMPANY_DOMAINS[job.company.trim().toLowerCase()];
+  if (mapped) return mapped;
+
   if (job.job_url) {
     try {
       const host = new URL(job.job_url).hostname.replace(/^www\./, "");
