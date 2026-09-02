@@ -4,8 +4,10 @@ from .amazon import AmazonSource
 from .ashby import AshbySource
 from .base import DiscoveredJob, JobSource
 from .bofa import BofaSource
+from .darwinbox import DarwinboxSource
 from .google import GoogleSource
 from .greenhouse import GreenhouseSource
+from .keka import KekaSource
 from .lever import LeverSource
 from .meta import MetaSource
 from .oracle import OracleSource
@@ -43,6 +45,8 @@ SOURCES: dict[str, JobSource] = {
         MetaSource(),
         GoogleSource(),
         BofaSource(),
+        KekaSource(),
+        DarwinboxSource(),
     )
 }
 

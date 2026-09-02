@@ -157,6 +157,13 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Amazon": [("amazon", "")],
     "Swiggy": [("swiggy", "")],
     "Bank of America": [("bofa", "")],
+    # -- Keka (token = "tenant|portalId") -------------------------
+    "Jupiter": [
+        ("keka", "jupiter|b5279857-cf81-4dde-a215-fc48957ee2b5")
+    ],
+    # -- Darwinbox (token = "tenant|companyId") ------------------
+    "Moneyview": [("darwinbox", "moneyview|main")],
+    "Zepto": [("darwinbox", "zepto|main")],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields

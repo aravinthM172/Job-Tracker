@@ -1,0 +1,42 @@
+{
+ "status": "success",
+ "data": [
+  {
+   "id": "a688c95622ef18",
+   "title": "System Admin",
+   "locations": "Multiple Locations",
+   "tool_tip_locations": [
+    " Indore, Madhya Pradesh, India",
+    "Anand House Mumbai,  Mumbai, Maharashtra, India",
+    "Bhive, Bangalore, Bengaluru, Karnataka, India",
+    "Novel Techpark Kudlugate Bengaluru, Bengaluru, Karnataka, India",
+    "The Address Featherlite Bengaluru, Bengaluru, Karnataka, India"
+   ],
+   "country": "India",
+   "posted_on": 1788287400,
+   "created_on": "2025-08-01T10:22:26.000Z"
+  },
+  {
+   "id": "a6a87f1eb6d17c",
+   "title": "Data Engineer -2",
+   "locations": "The Address Featherlite Bengaluru, Bengaluru, Karnataka\r, India",
+   "tool_tip_locations": [
+    "The Address Featherlite Bengaluru, Bengaluru, Karnataka, India"
+   ],
+   "country": "India",
+   "posted_on": 1787250600,
+   "created_on": "2026-08-21T06:36:27.000Z"
+  },
+  {
+   "id": "a6a88148ebe4e0",
+   "title": "Software Development Engineer - 1",
+   "locations": "Anand House Mumbai,  Mumbai, Maharashtra\r, India",
+   "tool_tip_locations": [
+    "Anand House Mumbai,  Mumbai, Maharashtra, India"
+   ],
+   "country": "India",
+   "posted_on": 1787250600,
+   "created_on": "2026-08-21T09:04:14.000Z"
+  }
+ ]
+}
