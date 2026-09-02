@@ -1,4 +1,4 @@
-"""Heavy sources (workday / amazon) run only every 3rd cycle."""
+"""Heavy sources run every 4th cycle; guarded ones every 6th."""
 
 from datetime import datetime
 
@@ -62,3 +62,38 @@ def test_heavy_source_runs_every_third_cycle(wired, db):
     # both companies' jobs still land eventually
     companies = {row.company for row in db.query(LiveJob).all()}
     assert companies == {"Acme", "BigCo"}
+
+
+@pytest.fixture
+def wired_guarded(monkeypatch):
+    monkeypatch.setenv("LIVE_JOBS_LOCATIONS", "")
+    light = RecordingSource("greenhouse")
+    guarded = RecordingSource("meta")
+    monkeypatch.setattr(
+        discovery, "SOURCES", {"greenhouse": light, "meta": guarded}
+    )
+    monkeypatch.setattr(discovery, "GUARDED_SOURCES", {"meta"})
+    monkeypatch.setattr(discovery, "DATELESS_SOURCES", {"meta"})
+    monkeypatch.setattr(
+        discovery,
+        "COMPANY_SOURCES",
+        {
+            "Acme": [("greenhouse", "acme")],
+            "Meta": [("meta", "")],
+        },
+    )
+    monkeypatch.setattr(discovery, "_cycle", 0)
+    return light, guarded
+
+
+def test_guarded_source_runs_every_sixth_cycle(wired_guarded, db):
+    light, guarded = wired_guarded
+
+    for _ in range(12):
+        discovery.discover_all_companies(db)
+
+    assert light.calls == 12  # every cycle
+    assert guarded.calls == 2  # cycles 1 and 7 (~30 min apart)
+
+    companies = {row.company for row in db.query(LiveJob).all()}
+    assert companies == {"Acme", "Meta"}

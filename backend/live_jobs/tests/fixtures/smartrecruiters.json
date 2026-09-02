@@ -1,0 +1,62 @@
+{
+ "offset": 0,
+ "limit": 100,
+ "totalFound": 37,
+ "content": [
+  {
+   "id": "744000146789639",
+   "name": "Staff Software Engineer - Infrastructure",
+   "releasedDate": "2026-09-01T18:00:04.548Z",
+   "location": {
+    "city": "Hyderabad",
+    "country": "in",
+    "address": "Salarpuria Sattva Knowledge City Knowledge City, Unit II, 17 to 10 Floor Survey No. 83/1, Serilingampally Mandal",
+    "postalCode": "500081",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Hyderabad, , India"
+   },
+   "company": {
+    "identifier": "ServiceNow",
+    "name": "ServiceNow"
+   }
+  },
+  {
+   "id": "744000146690462",
+   "name": "Sr Business Strategy Specialist",
+   "releasedDate": "2026-09-01T11:45:35.486Z",
+   "location": {
+    "city": "Gurgaon",
+    "country": "in",
+    "address": "One Horizon Center One Horizon Center, Golf Course Road DLF Phase\u20135, Sector 43",
+    "postalCode": "122002",
+    "remote": false,
+    "hybrid": false,
+    "fullLocation": "Gurgaon, , India"
+   },
+   "company": {
+    "identifier": "ServiceNow",
+    "name": "ServiceNow"
+   }
+  },
+  {
+   "id": "744000146651270",
+   "name": "Staff Security Incident Response Commander_Hyderabad/Bangalore/Remote",
+   "releasedDate": "2026-09-01T08:38:44.813Z",
+   "location": {
+    "city": "Hyderabad",
+    "region": "Telangana",
+    "country": "in",
+    "address": "Salarpuria Sattva Knowledge City Knowledge City, Unit II, 17 to 10 Floor Survey No. 83/1, Serilingampally Mandal",
+    "postalCode": "500081",
+    "remote": false,
+    "hybrid": true,
+    "fullLocation": "Hyderabad, Telangana, India"
+   },
+   "company": {
+    "identifier": "ServiceNow",
+    "name": "ServiceNow"
+   }
+  }
+ ]
+}

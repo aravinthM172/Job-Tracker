@@ -1,0 +1,31 @@
+{
+ "count": 3,
+ "results": [
+  {
+   "id": "5012345678",
+   "title": "Senior Software Engineer, Platform",
+   "created": "2026-09-02T04:11:00Z",
+   "company": { "display_name": "Flipkart" },
+   "location": { "display_name": "Bengaluru, Karnataka", "area": ["India", "Karnataka", "Bengaluru"] },
+   "redirect_url": "https://www.adzuna.in/land/ad/5012345678",
+   "description": "Build the commerce platform ..."
+  },
+  {
+   "id": "5012345679",
+   "title": "Data Engineer",
+   "created": "2026-09-01T09:00:00Z",
+   "company": { "display_name": "EPAM Systems Limited" },
+   "location": { "display_name": "Bengaluru, Karnataka" },
+   "redirect_url": "https://www.adzuna.in/land/ad/5012345679",
+   "description": "..."
+  },
+  {
+   "id": "5012345680",
+   "title": "Recruiter",
+   "created": "2026-09-01T09:00:00Z",
+   "company": { "display_name": "Some Staffing Agency" },
+   "location": { "display_name": "Bengaluru" },
+   "redirect_url": "https://www.adzuna.in/land/ad/5012345680"
+  }
+ ]
+}

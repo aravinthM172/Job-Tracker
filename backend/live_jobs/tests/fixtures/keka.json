@@ -1,0 +1,53 @@
+[
+ {
+  "id": 138159,
+  "title": "Legal Associate",
+  "jobLocations": [
+   {
+    "id": 31395,
+    "name": "Europa Bangalore",
+    "city": "Bengaluru",
+    "state": "KA",
+    "countryCode": "IN",
+    "countryName": "India"
+   }
+  ],
+  "jobType": 2,
+  "publishedOn": "2026-08-18T11:16:42.937Z",
+  "publishedSinceDays": 15
+ },
+ {
+  "id": 136609,
+  "title": "Sr Manager",
+  "jobLocations": [
+   {
+    "id": 31395,
+    "name": "Europa Bangalore",
+    "city": "Bengaluru",
+    "state": "KA",
+    "countryCode": "IN",
+    "countryName": "India"
+   }
+  ],
+  "jobType": 2,
+  "publishedOn": "2026-08-04T05:51:36.53Z",
+  "publishedSinceDays": 29
+ },
+ {
+  "id": 134831,
+  "title": "Devops Engineer - SDE 2",
+  "jobLocations": [
+   {
+    "id": 31395,
+    "name": "Europa Bangalore",
+    "city": "Bengaluru",
+    "state": "KA",
+    "countryCode": "IN",
+    "countryName": "India"
+   }
+  ],
+  "jobType": 2,
+  "publishedOn": "2026-07-15T07:26:49.647Z",
+  "publishedSinceDays": 49
+ }
+]
