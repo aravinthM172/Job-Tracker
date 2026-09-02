@@ -155,6 +155,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     # -- Per-company adapters ----------------------------------------
     "Amazon": [("amazon", "")],
     "Swiggy": [("swiggy", "")],
+    "Bank of America": [("bofa", "")],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields

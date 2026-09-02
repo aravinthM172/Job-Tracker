@@ -3,6 +3,7 @@
 from .amazon import AmazonSource
 from .ashby import AshbySource
 from .base import DiscoveredJob, JobSource
+from .bofa import BofaSource
 from .google import GoogleSource
 from .greenhouse import GreenhouseSource
 from .lever import LeverSource
@@ -41,6 +42,7 @@ SOURCES: dict[str, JobSource] = {
         SwiggySource(),
         MetaSource(),
         GoogleSource(),
+        BofaSource(),
     )
 }
 
