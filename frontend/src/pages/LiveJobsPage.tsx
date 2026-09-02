@@ -98,6 +98,76 @@ function avatarColor(name: string): string {
   return AVATAR_COLORS[hash % AVATAR_COLORS.length];
 }
 
+// Careers pages usually live on an ATS host, not the employer's own
+// domain - fall back to a slug of the company name for those.
+const ATS_HOSTS = [
+  "greenhouse.io",
+  "boards.greenhouse.io",
+  "lever.co",
+  "jobs.lever.co",
+  "myworkdayjobs.com",
+  "myworkdaysite.com",
+  "wd1.myworkdayjobs.com",
+  "ashbyhq.com",
+  "jobs.ashbyhq.com",
+  "smartrecruiters.com",
+  "jobs.smartrecruiters.com",
+  "oraclecloud.com",
+  "taleo.net",
+  "icims.com",
+  "successfactors.com",
+  "successfactors.eu",
+  "keka.com",
+  "darwinbox.com",
+  "darwinbox.in",
+  "mynexthire.com",
+  "adzuna.com",
+  "adzuna.in",
+  "radancy.com",
+  "avature.net",
+  "eightfold.ai",
+  "phenom.com",
+];
+
+function companyDomain(job: LiveJob): string {
+  if (job.job_url) {
+    try {
+      const host = new URL(job.job_url).hostname.replace(/^www\./, "");
+      const isAts = ATS_HOSTS.some(
+        (ats) => host === ats || host.endsWith(`.${ats}`),
+      );
+      if (!isAts && host.includes(".")) {
+        return host.split(".").slice(-2).join(".");
+      }
+    } catch {
+      /* fall through to the name slug */
+    }
+  }
+  const slug = job.company.toLowerCase().replace(/[^a-z0-9]/g, "");
+  return slug ? `${slug}.com` : "";
+}
+
+function CompanyAvatar({ job }: { job: LiveJob }) {
+  const domain = companyDomain(job);
+  const [failed, setFailed] = useState(false);
+
+  return (
+    <div
+      className={`relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg text-sm font-semibold ${avatarColor(job.company)}`}
+    >
+      {job.company.slice(0, 2).toUpperCase()}
+      {domain && !failed && (
+        <img
+          src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
+          alt=""
+          onError={() => setFailed(true)}
+          className="absolute inset-0 m-auto h-6 w-6 rounded bg-white object-contain"
+        />
+      )}
+    </div>
+  );
+}
+
 function statusClass(status: LiveJob["status"]) {
   switch (status) {
     case "NEW":
@@ -480,11 +550,7 @@ export function LiveJobsPage() {
                 className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md lg:flex-row lg:items-center lg:justify-between"
               >
                 <div className="flex min-w-0 gap-4">
-                  <div
-                    className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-sm font-semibold ${avatarColor(job.company)}`}
-                  >
-                    {job.company.slice(0, 2).toUpperCase()}
-                  </div>
+                  <CompanyAvatar job={job} />
 
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
