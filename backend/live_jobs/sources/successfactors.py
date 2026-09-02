@@ -27,7 +27,8 @@ _UA = (
 
 _PAGES = 2
 _PAGE_SIZE = 25
-_MAX = 25
+_MAX = 20
+_SORT = "sortColumn=referencedate&sortDirection=desc"
 
 
 def _base(url: str) -> str:
@@ -90,11 +91,12 @@ class SuccessFactorsSource:
             return []
 
         sep = "&" if "?" in token else "?"
+        url = token if "sortColumn=" in token else f"{token}{sep}{_SORT}"
         jobs: list[DiscoveredJob] = []
 
         for page in range(_PAGES):
             batch = parse_jobs(
-                _raw(f"{token}{sep}startrow={page * _PAGE_SIZE}"), token
+                _raw(f"{url}&startrow={page * _PAGE_SIZE}"), token
             )
             if not batch:
                 break
