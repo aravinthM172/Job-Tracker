@@ -28,11 +28,12 @@ from .normalize import (
 from datetime import datetime, timedelta
 
 from .service import find_live_job, live_job_cutoff, upsert_live_job
-from .sources import DATELESS_SOURCES, HEAVY_SOURCES, SOURCES
+from .sources import DATELESS_SOURCES, GUARDED_SOURCES, HEAVY_SOURCES, SOURCES
 
 _MAX_WORKERS = 10
 _BUDGET_SECONDS = 150
-_HEAVY_EVERY = 4  # cycles (~20 min for workday / amazon)
+_HEAVY_EVERY = 4  # cycles (~20 min for workday / amazon / oracle)
+_GUARDED_EVERY = 6  # cycles (~30 min for google / meta - see GUARDED_SOURCES)
 
 _cycle = 0
 
@@ -107,18 +108,29 @@ def _ingest(db: Session, batch: list, cutoff, locations, counts: dict) -> None:
         counts["new" if is_new else "updated"] += 1
 
 
-def _select_feeds(feeds: list[tuple[str, str]], run_heavy: bool):
-    return [(s, t) for (s, t) in feeds if run_heavy or s not in HEAVY_SOURCES]
+def _select_feeds(
+    feeds: list[tuple[str, str]], run_heavy: bool, run_guarded: bool
+):
+    selected = []
+    for source_name, token in feeds:
+        if source_name in GUARDED_SOURCES and not run_guarded:
+            continue
+        if source_name in HEAVY_SOURCES and not run_heavy:
+            continue
+        selected.append((source_name, token))
+    return selected
 
 
 def discover_all_companies(db: Session) -> dict[str, int]:
     global _cycle
     _cycle += 1
     run_heavy = _cycle % _HEAVY_EVERY == 1
+    run_guarded = _cycle % _GUARDED_EVERY == 1
 
     counts = {
         "cycle": _cycle,
         "heavy": int(run_heavy),
+        "guarded": int(run_guarded),
         "companies": 0,
         "fetched": 0,
         "skipped_old": 0,
@@ -131,7 +143,7 @@ def discover_all_companies(db: Session) -> dict[str, int]:
 
     work = []
     for company, feeds in COMPANY_SOURCES.items():
-        selected = _select_feeds(feeds, run_heavy)
+        selected = _select_feeds(feeds, run_heavy, run_guarded)
         if selected:
             work.append((company, selected))
 

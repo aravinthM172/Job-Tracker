@@ -1,0 +1,99 @@
+{
+ "data": {
+  "job_search_with_featured_jobs_v2": {
+   "all_jobs": [
+    {
+     "id": "1721254462523213",
+     "title": "Client Solutions Manager, Ecommerce",
+     "locations": [
+      "Bangalore, India"
+     ],
+     "teams": [
+      "Sales & Marketing"
+     ],
+     "sub_teams": [
+      "Client Solutions",
+      "Sales"
+     ]
+    },
+    {
+     "id": "1334478348668120",
+     "title": "Agency Partner (Short Term Employment)",
+     "locations": [
+      "Mumbai, India"
+     ],
+     "teams": [
+      "Sales & Marketing"
+     ],
+     "sub_teams": [
+      "Client Solutions",
+      "Sales"
+     ]
+    },
+    {
+     "id": "2374330646419740",
+     "title": "Enterprise Technical Sales Specialist, APAC",
+     "locations": [
+      "Bangalore, India",
+      "Gurgaon, India",
+      "Mumbai, India"
+     ],
+     "teams": [
+      "Sales & Marketing"
+     ],
+     "sub_teams": [
+      "Sales"
+     ]
+    }
+   ],
+   "featured_jobs": [
+    {
+     "id": "1690022942358388",
+     "title": "Critical Facility Engineer",
+     "locations": [
+      "Henrico, VA",
+      "Mesa, AZ",
+      "Ashburn, VA",
+      "Temple, TX",
+      "Rayville, LA",
+      "Newton County, GA",
+      "Menlo Park, CA",
+      "Montgomery, AL",
+      "Jeffersonville, IN",
+      "Papillion, NE",
+      "Beaver Dam, WI",
+      "Cheyenne, WY",
+      "Lebanon, IN",
+      "Richmond, VA",
+      "Goodyear, AZ",
+      "El Paso, TX",
+      "Bowling Green, OH",
+      "Cedar Rapids, IA",
+      "DeKalb, IL",
+      "New Albany, OH",
+      "Tulsa, OK",
+      "Huntsville, AL",
+      "Rosemount, MN",
+      "Eagle Mountain, UT",
+      "Kuna, ID"
+     ],
+     "teams": [
+      "Data Center"
+     ],
+     "sub_teams": [
+      "Data Center Operations"
+     ]
+    }
+   ],
+   "featured_jobs_title": "Featured Jobs",
+   "all_jobs_title": "All Jobs"
+  }
+ },
+ "extensions": {
+  "server_metadata": {
+   "request_start_time_ms": 1788334956879,
+   "time_at_flush_ms": 1788334957215
+  },
+  "is_final": true
+ }
+}
