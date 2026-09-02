@@ -1,7 +1,13 @@
 @import "tailwindcss";
 
+@custom-variant dark (&:where(.dark, .dark *));
+
 :root {
   color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
 }
 
 html,
@@ -15,6 +21,12 @@ body {
   font-family: -apple-system, "Segoe UI", Roboto, Inter, system-ui, sans-serif;
   background-color: #f6f7f9;
   color: #1a1d23;
+  transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+.dark body {
+  background-color: #0b0f17;
+  color: #e5e7eb;
 }
 
 * {
@@ -33,4 +45,8 @@ body {
 ::-webkit-scrollbar-thumb {
   background-color: #d3d6dc;
   border-radius: 999px;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: #334155;
 }

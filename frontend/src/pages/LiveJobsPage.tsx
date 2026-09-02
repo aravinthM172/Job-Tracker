@@ -162,7 +162,7 @@ function CompanyAvatar({ job }: { job: LiveJob }) {
           src={`https://www.google.com/s2/favicons?domain=${domain}&sz=64`}
           alt=""
           onError={() => setFailed(true)}
-          className="absolute inset-0 m-auto h-6 w-6 rounded bg-white object-contain"
+          className="absolute inset-0 m-auto h-6 w-6 rounded bg-white dark:bg-slate-900 object-contain"
         />
       )}
     </div>
@@ -172,13 +172,13 @@ function CompanyAvatar({ job }: { job: LiveJob }) {
 function statusClass(status: LiveJob["status"]) {
   switch (status) {
     case "NEW":
-      return "bg-blue-50 text-blue-700 border-blue-200";
+      return "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:border-blue-900";
     case "LIVE":
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      return "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-900";
     case "REPOSTED":
-      return "bg-amber-50 text-amber-700 border-amber-200";
+      return "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-900";
     case "CLOSED":
-      return "bg-slate-100 text-slate-600 border-slate-200";
+      return "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-800";
   }
 }
 
@@ -340,22 +340,22 @@ export function LiveJobsPage() {
   ];
 
   const selectClass =
-    "rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400";
+    "rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 outline-none focus:border-slate-400 dark:focus:border-slate-500";
 
   return (
     <div className="space-y-5">
       {/* Freshness ribbon */}
-      <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-gradient-to-r from-emerald-50 to-teal-50 p-4 dark:border-emerald-900/60 dark:from-emerald-950/40 dark:to-teal-950/30 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-3">
           <span className="relative flex h-2.5 w-2.5">
             <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
             <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-emerald-500" />
           </span>
           <div className="text-sm">
-            <span className="font-semibold text-slate-900">
+            <span className="font-semibold text-slate-900 dark:text-slate-100">
               {summary.total} opening{summary.total === 1 ? "" : "s"} live
             </span>
-            <span className="text-slate-500">
+            <span className="text-slate-500 dark:text-slate-400">
               {" · "}
               {newestListingAt
                 ? `newest found ${timeAgo(new Date(newestListingAt).toISOString(), now)}`
@@ -365,14 +365,14 @@ export function LiveJobsPage() {
         </div>
 
         <div className="flex items-center gap-3">
-          <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500">
+          <span className="flex items-center gap-1.5 text-xs font-medium text-slate-500 dark:text-slate-400">
             <Clock className="h-3.5 w-3.5" />
             {refreshing ? "refreshing…" : `auto-refresh in ${countdown}s`}
           </span>
           <button
             onClick={() => loadJobs(true)}
             disabled={refreshing}
-            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-200 bg-white px-3 py-1.5 text-sm font-medium text-emerald-700 shadow-sm hover:bg-emerald-50 disabled:opacity-60"
+            className="inline-flex items-center justify-center gap-2 rounded-lg border border-emerald-300 bg-white dark:bg-slate-800 dark:border-emerald-800 px-3 py-1.5 text-sm font-medium text-emerald-700 dark:text-emerald-300 shadow-sm hover:bg-emerald-50 dark:hover:bg-emerald-950/40 disabled:opacity-60"
           >
             <RefreshCw
               className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`}
@@ -392,12 +392,12 @@ export function LiveJobsPage() {
               onClick={() => setStatusFilter(chip.key)}
               className={`rounded-xl border p-3 text-left transition-colors ${
                 active
-                  ? "border-slate-900 bg-slate-900 text-white"
-                  : "border-slate-200 bg-white text-slate-900 hover:border-slate-300"
+                  ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                  : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 hover:border-slate-300"
               }`}
             >
               <p
-                className={`text-xs font-medium ${active ? "text-slate-300" : "text-slate-500"}`}
+                className={`text-xs font-medium ${active ? "text-slate-300 dark:text-slate-600" : "text-slate-500 dark:text-slate-400"}`}
               >
                 {chip.label}
               </p>
@@ -408,20 +408,20 @@ export function LiveJobsPage() {
       </div>
 
       {/* Filter bar */}
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400">
+      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+        <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-slate-400 dark:text-slate-500">
           <SlidersHorizontal className="h-3.5 w-3.5" />
           Filters
         </div>
 
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative sm:col-span-2 lg:col-span-1">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
               value={search}
               onChange={(event) => setSearch(event.target.value)}
               placeholder="Search role, company…"
-              className="w-full rounded-lg border border-slate-200 py-2 pl-9 pr-3 text-sm outline-none focus:border-slate-400"
+              className="w-full rounded-lg border border-slate-200 dark:border-slate-800 py-2 pl-9 pr-3 text-sm outline-none focus:border-slate-400 dark:focus:border-slate-500"
             />
           </div>
 
@@ -470,14 +470,14 @@ export function LiveJobsPage() {
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
             {activeFilters.length === 0 ? (
-              <span className="text-xs text-slate-400">No filters applied</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500">No filters applied</span>
             ) : (
               <>
                 {activeFilters.map((filter) => (
                   <button
                     key={filter.label}
                     onClick={filter.clear}
-                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-600 hover:bg-slate-200"
+                    className="inline-flex items-center gap-1 rounded-full bg-slate-100 dark:bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200"
                   >
                     {filter.label}
                     <X className="h-3 w-3" />
@@ -491,7 +491,7 @@ export function LiveJobsPage() {
                     setLocation("");
                     setStatusFilter("ALL");
                   }}
-                  className="text-xs font-medium text-slate-400 underline-offset-2 hover:text-slate-600 hover:underline"
+                  className="text-xs font-medium text-slate-400 dark:text-slate-500 underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300 hover:underline"
                 >
                   Clear all
                 </button>
@@ -499,7 +499,7 @@ export function LiveJobsPage() {
             )}
           </div>
 
-          <label className="flex items-center gap-2 text-xs text-slate-500">
+          <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             Sort
             <select
               value={sort}
@@ -515,12 +515,12 @@ export function LiveJobsPage() {
       </div>
 
       {error && (
-        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+        <div className="rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
           {error}
         </div>
       )}
 
-      <div className="flex items-center justify-between px-1 text-xs text-slate-400">
+      <div className="flex items-center justify-between px-1 text-xs text-slate-400 dark:text-slate-500">
         <span>
           {loading
             ? "Loading…"
@@ -529,16 +529,16 @@ export function LiveJobsPage() {
       </div>
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 bg-white p-10 text-center text-sm text-slate-400">
+        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center text-sm text-slate-400 dark:text-slate-500">
           Loading Live Jobs…
         </div>
       ) : filteredJobs.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-slate-300 bg-white p-12 text-center">
+        <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
           <BriefcaseBusiness className="mx-auto h-8 w-8 text-slate-300" />
-          <h2 className="mt-3 text-sm font-semibold text-slate-800">
+          <h2 className="mt-3 text-sm font-semibold text-slate-800 dark:text-slate-200">
             {jobs.length === 0 ? "No Live Jobs yet" : "No jobs match your filters"}
           </h2>
-          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500">
+          <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
             {jobs.length === 0
               ? "No Bengaluru jobs from tracked companies in the last 48 hours yet."
               : "Try widening the experience, location or company filter."}
@@ -551,7 +551,7 @@ export function LiveJobsPage() {
             return (
               <div
                 key={job.id}
-                className="flex flex-col gap-4 rounded-xl border border-slate-200 bg-white p-5 shadow-sm transition-shadow hover:shadow-md lg:flex-row lg:items-center lg:justify-between"
+                className="flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md lg:flex-row lg:items-center lg:justify-between"
               >
                 <div className="flex min-w-0 gap-4">
                   <CompanyAvatar job={job} />
@@ -570,12 +570,12 @@ export function LiveJobsPage() {
                       )}
                     </div>
 
-                    <h3 className="mt-1.5 truncate text-sm font-semibold text-slate-900">
+                    <h3 className="mt-1.5 truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
                       {job.title}
                     </h3>
 
                     <div className="mt-1.5 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
-                      <span className="font-medium text-slate-600">
+                      <span className="font-medium text-slate-600 dark:text-slate-400">
                         {job.company}
                       </span>
                       <span className="inline-flex items-center gap-1">
@@ -608,7 +608,7 @@ export function LiveJobsPage() {
                     href={job.job_url}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-700 lg:self-auto"
+                    className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300 lg:self-auto"
                   >
                     View Job
                     <ExternalLink className="h-3.5 w-3.5" />

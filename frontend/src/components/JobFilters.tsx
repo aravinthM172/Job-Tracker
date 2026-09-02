@@ -61,14 +61,14 @@ export function JobFilters({
   hideStatusFilter,
 }: JobFiltersProps) {
   return (
-    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 bg-white p-3 sm:flex-row sm:items-center">
+    <div className="flex flex-col gap-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 sm:flex-row sm:items-center">
       <div className="relative flex-1">
-        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
         <input
           value={search}
           onChange={(e) => onSearchChange(e.target.value)}
           placeholder="Search company, job title, sender, or subject…"
-          className="w-full rounded-lg border border-slate-200 bg-slate-50 py-2 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 focus:border-slate-400 focus:bg-white"
+          className="w-full rounded-lg border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/50 py-2 pl-9 pr-3 text-sm outline-none placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:border-slate-400 dark:focus:border-slate-500 focus:bg-white dark:focus:bg-slate-900"
         />
       </div>
 
@@ -77,7 +77,7 @@ export function JobFilters({
           <select
             value={status}
             onChange={(e) => onStatusChange(e.target.value as JobStatus | "all")}
-            className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+            className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 outline-none focus:border-slate-400 dark:focus:border-slate-500"
           >
             {STATUS_FILTER_OPTIONS.map((opt) => (
               <option key={opt.value} value={opt.value}>
@@ -90,7 +90,7 @@ export function JobFilters({
         <select
           value={source}
           onChange={(e) => onSourceChange(e.target.value)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+          className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 outline-none focus:border-slate-400 dark:focus:border-slate-500"
         >
           {SOURCE_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -102,7 +102,7 @@ export function JobFilters({
         <select
           value={sort}
           onChange={(e) => onSortChange(e.target.value as SortOption)}
-          className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 outline-none focus:border-slate-400"
+          className="rounded-lg border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-3 py-2 text-sm text-slate-700 dark:text-slate-300 outline-none focus:border-slate-400 dark:focus:border-slate-500"
         >
           {Object.entries(SORT_LABELS).map(([value, label]) => (
             <option key={value} value={value}>

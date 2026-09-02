@@ -11,13 +11,20 @@ export const STATUS_LABELS: Record<JobStatus, string> = {
 };
 
 export const STATUS_BADGE_CLASSES: Record<JobStatus, string> = {
-  applied: "bg-slate-100 text-slate-700 ring-slate-200",
-  application_received: "bg-blue-50 text-blue-700 ring-blue-200",
-  assessment: "bg-amber-50 text-amber-700 ring-amber-200",
-  interview: "bg-indigo-50 text-indigo-700 ring-indigo-200",
-  offer: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  rejected: "bg-rose-50 text-rose-700 ring-rose-200",
-  needs_review: "bg-orange-50 text-orange-700 ring-orange-200",
+  applied:
+    "bg-slate-100 text-slate-700 ring-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:ring-slate-700",
+  application_received:
+    "bg-blue-50 text-blue-700 ring-blue-200 dark:bg-blue-950/50 dark:text-blue-300 dark:ring-blue-900",
+  assessment:
+    "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900",
+  interview:
+    "bg-indigo-50 text-indigo-700 ring-indigo-200 dark:bg-indigo-950/50 dark:text-indigo-300 dark:ring-indigo-900",
+  offer:
+    "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900",
+  rejected:
+    "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-900",
+  needs_review:
+    "bg-orange-50 text-orange-700 ring-orange-200 dark:bg-orange-950/50 dark:text-orange-300 dark:ring-orange-900",
 };
 
 export const STATUS_DOT_CLASSES: Record<JobStatus, string> = {
@@ -50,9 +57,12 @@ export const ACCOUNT_STATUS_LABELS: Record<AccountStatus, string> = {
 };
 
 export const ACCOUNT_STATUS_CLASSES: Record<AccountStatus, string> = {
-  connected: "bg-emerald-50 text-emerald-700 ring-emerald-200",
-  auth_required: "bg-amber-50 text-amber-700 ring-amber-200",
-  error: "bg-rose-50 text-rose-700 ring-rose-200",
+  connected:
+    "bg-emerald-50 text-emerald-700 ring-emerald-200 dark:bg-emerald-950/50 dark:text-emerald-300 dark:ring-emerald-900",
+  auth_required:
+    "bg-amber-50 text-amber-700 ring-amber-200 dark:bg-amber-950/50 dark:text-amber-300 dark:ring-amber-900",
+  error:
+    "bg-rose-50 text-rose-700 ring-rose-200 dark:bg-rose-950/50 dark:text-rose-300 dark:ring-rose-900",
 };
 
 export function formatDate(value: string | null | undefined): string {

@@ -5,6 +5,7 @@ import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { JobDetailDrawer } from "./components/JobDetailDrawer";
 import { useTrackerData } from "./hooks/useTrackerData";
+import { useTheme } from "./hooks/useTheme";
 import type { DashboardSummary, Job, SyncStatusResponse } from "./lib/api";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
@@ -47,6 +48,7 @@ function Layout() {
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
+  const { theme, toggle: toggleTheme } = useTheme();
 
   const location = useLocation();
   const meta = PAGE_META[location.pathname] ?? PAGE_META["/"];
@@ -62,7 +64,7 @@ function Layout() {
   const initialLoading = loading && jobs.length === 0 && !dashboard && !error;
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
       <div className="flex min-w-0 flex-1 flex-col">
@@ -70,6 +72,8 @@ function Layout() {
           title={meta.title}
           subtitle={meta.subtitle}
           onMenuClick={() => setSidebarOpen(true)}
+          theme={theme}
+          onToggleTheme={toggleTheme}
           syncPhase={syncPhase}
           syncResult={syncResult}
           syncErrorMessage={syncErrorMessage}
@@ -79,14 +83,14 @@ function Layout() {
 
         <main className="flex-1 p-4 sm:p-6">
           {error && (
-            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700">
+            <div className="mb-4 flex items-center justify-between gap-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
               <span className="flex items-center gap-2">
                 <AlertTriangle className="h-4 w-4 shrink-0" />
                 Could not load data from the backend: {error}
               </span>
               <button
                 onClick={refresh}
-                className="shrink-0 rounded-md border border-rose-300 px-3 py-1 text-xs font-medium hover:bg-rose-100"
+                className="shrink-0 rounded-md border border-rose-300 px-3 py-1 text-xs font-medium hover:bg-rose-100 dark:border-rose-800 dark:hover:bg-rose-950"
               >
                 Retry
               </button>

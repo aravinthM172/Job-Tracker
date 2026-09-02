@@ -22,8 +22,8 @@ interface AccountStatusListProps {
 
 export function AccountStatusList({ accounts }: AccountStatusListProps) {
   return (
-    <div className="overflow-hidden rounded-xl border border-slate-200 bg-white shadow-sm">
-      <div className="divide-y divide-slate-100">
+    <div className="overflow-hidden rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-sm">
+      <div className="divide-y divide-slate-100 dark:divide-slate-800">
         {ACCOUNT_ORDER.map(({ key, label }) => {
           const info = accounts?.[key];
           const status: AccountStatus = info?.status ?? "auth_required";
@@ -31,13 +31,13 @@ export function AccountStatusList({ accounts }: AccountStatusListProps) {
           return (
             <div key={key} className="flex items-center justify-between gap-4 px-5 py-4">
               <div className="flex items-center gap-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 text-slate-500">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400">
                   <Mail className="h-4 w-4" />
                 </div>
                 <div>
-                  <p className="text-sm font-medium text-slate-900">{label}</p>
+                  <p className="text-sm font-medium text-slate-900 dark:text-slate-100">{label}</p>
                   {info?.message && (
-                    <p className="max-w-sm truncate text-xs text-slate-400" title={info.message}>
+                    <p className="max-w-sm truncate text-xs text-slate-400 dark:text-slate-500" title={info.message}>
                       {info.message}
                     </p>
                   )}
