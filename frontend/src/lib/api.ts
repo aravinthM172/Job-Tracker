@@ -134,8 +134,19 @@ export interface CreateJobPayload {
   applied_date: string;
 }
 
+export class ApiError extends Error {
+  status: number;
+  constructor(status: number, message: string) {
+    super(message);
+    this.status = status;
+  }
+}
+
 async function request<T>(path: string, init?: RequestInit): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
+    // the session cookie is httpOnly; in dev the frontend and API are
+    // different origins, so it only rides along with credentials set.
+    credentials: "include",
     headers: { "Content-Type": "application/json" },
     ...init,
   });
@@ -150,10 +161,32 @@ async function request<T>(path: string, init?: RequestInit): Promise<T> {
       // ignore, keep statusText
     }
 
-    throw new Error(`${res.status} ${detail}`);
+    // a 401 on anything other than the login call itself means the
+    // session lapsed - let the app fall back to the login screen
+    if (res.status === 401 && !path.startsWith("/api/auth/login")) {
+      window.dispatchEvent(new Event("auth-expired"));
+    }
+
+    throw new ApiError(res.status, `${res.status} ${detail}`);
   }
 
+  if (res.status === 204) return undefined as T;
   return res.json() as Promise<T>;
+}
+
+export type Role = "owner" | "viewer";
+
+export interface AuthUser {
+  username: string;
+  role: Role;
+}
+
+export interface ManagedUser {
+  id: number;
+  username: string;
+  role: Role;
+  is_disabled: boolean;
+  created_at: string;
 }
 
 export const api = {
@@ -174,4 +207,27 @@ export const api = {
   getSyncStatus: () => request<SyncStatusResponse>("/sync/status"),
 
   sync: () => request<SyncResponse>("/sync", { method: "POST" }),
+
+  auth: {
+    me: () => request<AuthUser>("/api/auth/me"),
+
+    login: (username: string, password: string) =>
+      request<AuthUser>("/api/auth/login", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      }),
+
+    logout: () => request<{ ok: boolean }>("/api/auth/logout", { method: "POST" }),
+
+    listUsers: () => request<ManagedUser[]>("/api/auth/users"),
+
+    createUser: (username: string, password: string) =>
+      request<ManagedUser>("/api/auth/users", {
+        method: "POST",
+        body: JSON.stringify({ username, password }),
+      }),
+
+    deleteUser: (id: number) =>
+      request<void>(`/api/auth/users/${id}`, { method: "DELETE" }),
+  },
 };

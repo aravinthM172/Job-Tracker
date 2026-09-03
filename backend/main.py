@@ -13,7 +13,7 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import RedirectResponse, Response
+from fastapi.responses import JSONResponse, RedirectResponse, Response
 from pydantic import BaseModel
 from pathlib import Path
 from datetime import datetime, timedelta, timezone
@@ -36,6 +36,12 @@ from google.auth.transport.requests import Request as GoogleAuthRequest
 from google.oauth2.credentials import Credentials as GoogleCredentials
 
 from db import SessionLocal, Job, JobEvent, STATUS_PRIORITY
+from auth import (
+    COOKIE_NAME,
+    auth_configured,
+    resolve_session,
+    router as auth_router,
+)
 from microsoft_auth import get_login_url, get_token, refresh_access_token
 
 # ============================================================
@@ -82,14 +88,32 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# HTTP Basic Auth gate in front of the whole app - this holds job
-# search emails/companies and a public /sync trigger, so a deployment
-# reachable on the open internet (unlike localhost/Tailscale-only use)
-# needs *something* in front of it. No-ops when BASIC_AUTH_USER/PASS
-# aren't set (local dev, Tailscale-only use) so neither is ever
-# required to run the app locally.
-BASIC_AUTH_USER = os.getenv("BASIC_AUTH_USER")
-BASIC_AUTH_PASS = os.getenv("BASIC_AUTH_PASS")
+# Session auth (see auth.py). The whole app holds synced email, so a
+# deployment reachable off localhost/Tailscale needs a login in front.
+# Enforced only once an owner credential is configured (OWNER_USERNAME /
+# OWNER_PASSWORD, or the legacy BASIC_AUTH_USER / BASIC_AUTH_PASS) - a
+# no-env checkout stays an open local-dev app, as before.
+app.include_router(auth_router)
+
+# Everything that serves real data. The SPA shell + its static assets
+# are anything NOT on this list, and load without a session (the app
+# then calls /api/auth/me and shows the login form on 401).
+_DATA_PREFIXES = (
+    "/api/",
+    "/auth/",
+    "/jobs",
+    "/dashboard",
+    "/sync",
+    "/docs",
+    "/redoc",
+    "/openapi",
+)
+_PUBLIC_PATHS = ("/health", "/api/auth/login")
+
+# Of the data endpoints, the only ones a viewer (shared-with friend)
+# account may reach. Everything else is owner-only - that's how synced
+# email stays private when the Live Jobs page is shared.
+_VIEWER_ALLOWED = ("/api/live-jobs", "/api/auth/me", "/api/auth/logout")
 
 
 @app.middleware("http")
@@ -110,29 +134,24 @@ async def security_headers(request: Request, call_next):
 
 
 @app.middleware("http")
-async def basic_auth(request: Request, call_next):
-    if not BASIC_AUTH_USER or not BASIC_AUTH_PASS:
+async def session_auth(request: Request, call_next):
+    if not auth_configured():
         return await call_next(request)
 
-    auth_header = request.headers.get("authorization", "")
-    scheme, _, credentials = auth_header.partition(" ")
+    path = request.url.path
 
-    if scheme.lower() == "basic":
-        try:
-            decoded = base64.b64decode(credentials).decode("utf-8")
-            user, _, password = decoded.partition(":")
-        except Exception:
-            user, password = "", ""
+    if path in _PUBLIC_PATHS or not path.startswith(_DATA_PREFIXES):
+        return await call_next(request)
 
-        if secrets.compare_digest(user, BASIC_AUTH_USER) and secrets.compare_digest(
-            password, BASIC_AUTH_PASS
-        ):
-            return await call_next(request)
+    user = resolve_session(request.cookies.get(COOKIE_NAME))
+    if user is None:
+        return JSONResponse({"detail": "Not authenticated"}, status_code=401)
 
-    return Response(
-        status_code=401,
-        headers={"WWW-Authenticate": 'Basic realm="Job Tracker"'},
-    )
+    if user["role"] != "owner" and not path.startswith(_VIEWER_ALLOWED):
+        return JSONResponse({"detail": "Forbidden"}, status_code=403)
+
+    request.state.user = user
+    return await call_next(request)
 
 BASE_DIR = Path(__file__).resolve().parent
 # Same DATA_DIR as db.py (see db.py) - keeps OAuth tokens on the same

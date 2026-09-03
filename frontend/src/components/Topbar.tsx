@@ -10,11 +10,11 @@ interface TopbarProps {
   onMenuClick: () => void;
   theme: Theme;
   onToggleTheme: () => void;
-  syncPhase: SyncPhase;
-  syncResult: SyncResponse | null;
-  syncErrorMessage: string | null;
-  onSync: () => void;
-  onDismissSync: () => void;
+  syncPhase?: SyncPhase;
+  syncResult?: SyncResponse | null;
+  syncErrorMessage?: string | null;
+  onSync?: () => void;
+  onDismissSync?: () => void;
 }
 
 export function Topbar({
@@ -65,13 +65,15 @@ export function Topbar({
           )}
         </button>
 
-        <SyncButton
-          phase={syncPhase}
-          result={syncResult}
-          errorMessage={syncErrorMessage}
-          onSync={onSync}
-          onDismiss={onDismissSync}
-        />
+        {onSync && (
+          <SyncButton
+            phase={syncPhase ?? "idle"}
+            result={syncResult ?? null}
+            errorMessage={syncErrorMessage ?? null}
+            onSync={onSync}
+            onDismiss={onDismissSync ?? (() => {})}
+          />
+        )}
       </div>
     </header>
   );

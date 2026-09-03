@@ -7,12 +7,14 @@ import { JobDetailDrawer } from "./components/JobDetailDrawer";
 import { CommandPalette } from "./components/CommandPalette";
 import { useTrackerData } from "./hooks/useTrackerData";
 import { useTheme } from "./hooks/useTheme";
+import { useAuth } from "./hooks/useAuth";
 import type { DashboardSummary, Job, SyncStatusResponse } from "./lib/api";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ApplicationsPage } from "./pages/ApplicationsPage";
 import { StatusFilteredPage } from "./pages/StatusFilteredPage";
 import { SettingsPage } from "./pages/SettingsPage";
 import { LiveJobsPage } from "./pages/LiveJobsPage";
+import { LoginPage } from "./pages/LoginPage";
 
 export interface TrackerContext {
   jobs: Job[];
@@ -28,11 +30,11 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   "/interviews": { title: "Interviews", subtitle: "Applications currently in the interview stage" },
   "/assessments": { title: "Assessments", subtitle: "Applications with a pending or completed assessment" },
   "/rejected": { title: "Rejected", subtitle: "Applications that did not move forward" },
-  "/settings": { title: "Settings", subtitle: "Email account connections" },
+  "/settings": { title: "Settings", subtitle: "Accounts and access" },
   "/live-jobs": { title: "Live Jobs", subtitle: "Fresh Bengaluru openings from tracked companies · last 48 hours" },
 };
 
-function Layout() {
+function OwnerLayout() {
   const {
     jobs,
     dashboard,
@@ -46,6 +48,7 @@ function Layout() {
     syncErrorMessage,
     dismissSyncResult,
   } = useTrackerData();
+  const { user, logout } = useAuth();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedJobId, setSelectedJobId] = useState<number | null>(null);
@@ -66,7 +69,13 @@ function Layout() {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        role="owner"
+        username={user?.username ?? null}
+        onLogout={logout}
+      />
 
       <div className="flex min-w-0 flex-1 flex-col">
         <Topbar
@@ -114,10 +123,41 @@ function Layout() {
   );
 }
 
-export default function App() {
+function ViewerLayout() {
+  const { user, logout } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const { theme, toggle: toggleTheme } = useTheme();
+
+  return (
+    <div className="flex min-h-screen bg-slate-50 dark:bg-slate-950">
+      <Sidebar
+        open={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+        role="viewer"
+        username={user?.username ?? null}
+        onLogout={logout}
+      />
+
+      <div className="flex min-w-0 flex-1 flex-col">
+        <Topbar
+          title="Live Jobs"
+          subtitle={PAGE_META["/live-jobs"].subtitle}
+          onMenuClick={() => setSidebarOpen(true)}
+          theme={theme}
+          onToggleTheme={toggleTheme}
+        />
+        <main className="flex-1 p-4 sm:p-6">
+          <LiveJobsPage />
+        </main>
+      </div>
+    </div>
+  );
+}
+
+function OwnerApp() {
   return (
     <Routes>
-      <Route element={<Layout />}>
+      <Route element={<OwnerLayout />}>
         <Route path="/" element={<DashboardPage />} />
         <Route path="/applications" element={<ApplicationsPage />} />
         <Route
@@ -156,4 +196,31 @@ export default function App() {
       </Route>
     </Routes>
   );
+}
+
+function ViewerApp() {
+  return (
+    <Routes>
+      <Route path="/live-jobs" element={<ViewerLayout />} />
+      <Route path="*" element={<Navigate to="/live-jobs" replace />} />
+    </Routes>
+  );
+}
+
+export default function App() {
+  const { status, user } = useAuth();
+
+  if (status === "loading") {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-slate-50 text-slate-400 dark:bg-slate-950">
+        <Loader2 className="h-6 w-6 animate-spin" />
+      </div>
+    );
+  }
+
+  if (status === "anon" || !user) {
+    return <LoginPage />;
+  }
+
+  return user.role === "viewer" ? <ViewerApp /> : <OwnerApp />;
 }
