@@ -1,6 +1,11 @@
 services:
   app:
-    build: .
+    build:
+      context: .
+      args:
+        # headless Chromium for the `browser` live_jobs source (careers
+        # sites that render jobs only in JS). Adds ~1 GB to the image.
+        LIVE_JOBS_BROWSER: "1"
     ports:
       - "80:8000"
     volumes:
