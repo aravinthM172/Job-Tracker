@@ -115,32 +115,42 @@ class SuccessFactorsSource:
         return jobs
 
 
-def _jsonld_description(html: str) -> str | None:
-    """Pull JobPosting.description out of a CSB job page's JSON-LD."""
+def _page_description(html: str) -> str | None:
+    """Lift the ad body from a CSB job page - JSON-LD if present, else the
+    ``span.jobdescription`` block the CSB template renders."""
     for block in _JSONLD.findall(html or ""):
         try:
             data = json.loads(block.strip())
         except (ValueError, TypeError):
             continue
-        candidates = data if isinstance(data, list) else [data]
-        for entry in candidates:
+        for entry in data if isinstance(data, list) else [data]:
             if (
                 isinstance(entry, dict)
                 and entry.get("@type") == "JobPosting"
                 and entry.get("description")
             ):
                 return str(entry["description"])
-    return None
+
+    try:
+        from bs4 import BeautifulSoup
+    except ImportError:  # pragma: no cover
+        return None
+
+    soup = BeautifulSoup(html or "", "html.parser")
+    node = soup.select_one("span.jobdescription") or soup.select_one(
+        '[data-bind-propertyid="description"]'
+    )
+    return node.get_text(" ") if node is not None else None
 
 
 def _enrich(jobs: list[DiscoveredJob]) -> None:
-    """Fetch each job page and lift the JSON-LD description. Best effort."""
+    """Fetch each job page and lift its description. Best effort."""
     for job in jobs[:_ENRICH_MAX]:
         if not job.job_url:
             continue
         html = _raw(job.job_url)
         if html:
-            job.description = clean_description(_jsonld_description(html))
+            job.description = clean_description(_page_description(html))
 
 
 def _raw(url: str) -> str | None:
