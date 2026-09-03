@@ -178,14 +178,13 @@ function locationKeys(loc: string | null): string[] {
   return metros.length ? metros : [normalizeLocation(loc)];
 }
 
-// card label - every metro, with the filtered one leading
-function locationDisplay(loc: string | null, selected: string): string {
+// card label - every metro, with any filtered ones leading
+function locationDisplay(loc: string | null, selected: string[]): string {
   const metros = jobMetros(loc);
   if (metros.length === 0) return normalizeLocation(loc);
-  const ordered =
-    selected && metros.includes(selected)
-      ? [selected, ...metros.filter((m) => m !== selected)]
-      : metros;
+  const lead = metros.filter((m) => selected.includes(m));
+  const rest = metros.filter((m) => !selected.includes(m));
+  const ordered = lead.length ? [...lead, ...rest] : metros;
   return ordered.length > 1
     ? `${ordered[0]} · also ${ordered.slice(1).join(", ")}`
     : ordered[0];
@@ -288,7 +287,11 @@ export function LiveJobsPage() {
   const search = params.get("q") ?? "";
   const company = params.get("company") ?? "";
   const experience = (params.get("exp") ?? "") as ExperienceKey | "";
-  const location = params.get("loc") ?? "";
+  const locParam = params.get("loc") ?? "";
+  const selectedLocations = locParam
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
   const sourceFilter = params.get("src") ?? "";
   const statusFilter = (params.get("status") ?? "ALL") as StatusFilter;
   const sort = (params.get("sort") ?? "newest") as SortKey;
@@ -296,7 +299,13 @@ export function LiveJobsPage() {
   const setSearch = (v: string) => setParam("q", v);
   const setCompany = (v: string) => setParam("company", v);
   const setExperience = (v: ExperienceKey | "") => setParam("exp", v);
-  const setLocation = (v: string) => setParam("loc", v);
+  const setLocations = (v: string[]) => setParam("loc", v.join(","));
+  const toggleLocation = (key: string) =>
+    setLocations(
+      selectedLocations.includes(key)
+        ? selectedLocations.filter((l) => l !== key)
+        : [...selectedLocations, key],
+    );
   const setSourceFilter = (v: string) => setParam("src", v);
   const setStatusFilter = (v: StatusFilter) =>
     setParam("status", v === "ALL" ? "" : v);
@@ -411,7 +420,10 @@ export function LiveJobsPage() {
       if (company && job.company !== company) return false;
       if (sourceFilter && job.source !== sourceFilter) return false;
       if (experience && !matchesExperienceBucket(job, experience)) return false;
-      if (location && !locationKeys(job.location).includes(location))
+      if (
+        selectedLocations.length &&
+        !locationKeys(job.location).some((k) => selectedLocations.includes(k))
+      )
         return false;
       if (value) {
         const haystack =
@@ -438,7 +450,7 @@ export function LiveJobsPage() {
     company,
     sourceFilter,
     experience,
-    location,
+    locParam,
     statusFilter,
     sort,
     savedOnly,
@@ -448,7 +460,7 @@ export function LiveJobsPage() {
   // reset the page window whenever the result set changes
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [search, company, sourceFilter, experience, location, statusFilter, sort, savedOnly]);
+  }, [search, company, sourceFilter, experience, locParam, statusFilter, sort, savedOnly]);
 
   const shownJobs = filteredJobs.slice(0, visible);
 
@@ -485,7 +497,8 @@ export function LiveJobsPage() {
         EXPERIENCE_BUCKETS.find((b) => b.key === experience)?.label ?? experience,
       clear: () => setExperience(""),
     });
-  if (location) activeFilters.push({ label: location, clear: () => setLocation("") });
+  for (const loc of selectedLocations)
+    activeFilters.push({ label: loc, clear: () => toggleLocation(loc) });
   if (search.trim())
     activeFilters.push({ label: `“${search.trim()}”`, clear: () => setSearch("") });
 
@@ -572,7 +585,7 @@ export function LiveJobsPage() {
           Filters
         </div>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
@@ -612,19 +625,6 @@ export function LiveJobsPage() {
           </select>
 
           <select
-            value={location}
-            onChange={(event) => setLocation(event.target.value)}
-            className={selectClass}
-          >
-            <option value="">All locations</option>
-            {locations.map((loc) => (
-              <option key={loc} value={loc}>
-                {loc}
-              </option>
-            ))}
-          </select>
-
-          <select
             value={sourceFilter}
             onChange={(event) => setSourceFilter(event.target.value)}
             className={selectClass}
@@ -637,6 +637,39 @@ export function LiveJobsPage() {
             ))}
           </select>
         </div>
+
+        {locations.length > 0 && (
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <span className="mr-1 text-xs font-medium text-slate-400 dark:text-slate-500">
+              Location
+            </span>
+            {locations.map((loc) => {
+              const on = selectedLocations.includes(loc);
+              return (
+                <button
+                  key={loc}
+                  onClick={() => toggleLocation(loc)}
+                  aria-pressed={on}
+                  className={`rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+                    on
+                      ? "border-slate-900 bg-slate-900 text-white dark:border-slate-100 dark:bg-slate-100 dark:text-slate-900"
+                      : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60"
+                  }`}
+                >
+                  {loc}
+                </button>
+              );
+            })}
+            {selectedLocations.length > 0 && (
+              <button
+                onClick={() => setLocations([])}
+                className="text-xs font-medium text-slate-400 underline-offset-2 hover:text-slate-600 hover:underline dark:text-slate-500 dark:hover:text-slate-300"
+              >
+                clear
+              </button>
+            )}
+          </div>
+        )}
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-2">
@@ -660,7 +693,7 @@ export function LiveJobsPage() {
                     setCompany("");
                     setSourceFilter("");
                     setExperience("");
-                    setLocation("");
+                    setLocations([]);
                     setStatusFilter("ALL");
                   }}
                   className="text-xs font-medium text-slate-400 dark:text-slate-500 underline-offset-2 hover:text-slate-600 dark:hover:text-slate-300 hover:underline"
@@ -782,7 +815,7 @@ export function LiveJobsPage() {
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {locationDisplay(job.location, location)}
+                        {locationDisplay(job.location, selectedLocations)}
                       </span>
                       {expLabel && (
                         <span className="inline-flex items-center gap-1">
