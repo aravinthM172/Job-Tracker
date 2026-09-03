@@ -107,6 +107,22 @@ function sourceLabel(source: string): string {
   return SOURCE_LABELS[source] ?? source;
 }
 
+// Feeds that publish no post date at all - the backend stamps a
+// placeholder so the row stays in-window, so "posted X ago" would be
+// fiction. Show the discovery time ("found") for these instead.
+const DATELESS_SOURCES = new Set([
+  "swiggy",
+  "successfactors",
+  "meta",
+  "google",
+  "browser",
+]);
+
+function postedText(job: LiveJob, now: number): string | null {
+  if (DATELESS_SOURCES.has(job.source)) return null;
+  return `posted ${postedDisplay(job.posted_at, now)}`;
+}
+
 function normalizeLocation(loc: string | null): string {
   if (!loc || !loc.trim()) return "Not specified";
   const t = loc.toLowerCase();
@@ -262,9 +278,16 @@ function statusClass(status: LiveJob["status"]) {
   }
 }
 
+// The API serialises naive-UTC datetimes with no "Z", so a bare
+// `new Date(value)` would read them as browser-local time. Normalise.
+function parseTs(value: string | null): number {
+  if (!value) return NaN;
+  const iso = /[zZ]|[+-]\d\d:?\d\d$/.test(value) ? value : `${value}Z`;
+  return new Date(iso).getTime();
+}
+
 function timeAgo(value: string | null, now: number): string {
-  if (!value) return "unknown";
-  const then = new Date(value).getTime();
+  const then = parseTs(value);
   if (Number.isNaN(then)) return "unknown";
 
   const seconds = Math.max(0, Math.floor((now - then) / 1000));
@@ -275,6 +298,37 @@ function timeAgo(value: string | null, now: number): string {
   if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
   return `${days}d ago`;
+}
+
+// Several feeds (Workday, Oracle, most SmartRecruiters) only publish a
+// calendar date - it lands as exactly 00:00:00 UTC. Showing "7h ago" for
+// those invents a precision we don't have, so render the date instead.
+function postedDisplay(value: string | null, now: number): string {
+  const then = parseTs(value);
+  if (Number.isNaN(then)) return "date unknown";
+
+  const d = new Date(then);
+  const dateOnly =
+    d.getUTCHours() === 0 &&
+    d.getUTCMinutes() === 0 &&
+    d.getUTCSeconds() === 0;
+
+  if (!dateOnly) return timeAgo(value, now);
+
+  const today = new Date(now);
+  const dayDiff = Math.round(
+    (Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate()) -
+      Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate())) /
+      86400000,
+  );
+  if (dayDiff <= 0) return "today";
+  if (dayDiff === 1) return "yesterday";
+  if (dayDiff < 7) return `${dayDiff}d ago`;
+  return d.toLocaleDateString(undefined, {
+    month: "short",
+    day: "numeric",
+    timeZone: "UTC",
+  });
 }
 
 export function LiveJobsPage() {
@@ -375,8 +429,8 @@ export function LiveJobsPage() {
       sorted.sort((a, b) => a.company.localeCompare(b.company));
     } else {
       sorted.sort((a, b) => {
-        const at = a.posted_at ? new Date(a.posted_at).getTime() : 0;
-        const bt = b.posted_at ? new Date(b.posted_at).getTime() : 0;
+        const at = parseTs(a.posted_at) || 0;
+        const bt = parseTs(b.posted_at) || 0;
         return sort === "newest" ? bt - at : at - bt;
       });
     }
@@ -390,7 +444,7 @@ export function LiveJobsPage() {
   const newestListingAt = useMemo(() => {
     let newest = 0;
     for (const job of jobs) {
-      const t = new Date(job.first_seen_at).getTime();
+      const t = parseTs(job.first_seen_at);
       if (!Number.isNaN(t) && t > newest) newest = t;
     }
     return newest || null;
@@ -679,13 +733,15 @@ export function LiveJobsPage() {
                         <Building2 className="h-3 w-3" />
                         {sourceLabel(job.source)}
                       </span>
-                      <span
-                        className="inline-flex items-center gap-1"
-                        title="Post date reported by the source feed"
-                      >
-                        <Clock className="h-3 w-3" />
-                        posted {timeAgo(job.posted_at, now)}
-                      </span>
+                      {postedText(job, now) && (
+                        <span
+                          className="inline-flex items-center gap-1"
+                          title="Post date reported by the source feed"
+                        >
+                          <Clock className="h-3 w-3" />
+                          {postedText(job, now)}
+                        </span>
+                      )}
                       <span
                         className="inline-flex items-center gap-1 text-emerald-600 dark:text-emerald-400"
                         title="When this sync first picked up the listing"

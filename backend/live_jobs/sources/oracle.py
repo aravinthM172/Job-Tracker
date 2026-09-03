@@ -131,10 +131,20 @@ def _enrich(jobs: list[DiscoveredJob], host: str, site: str) -> None:
         )
         items = data.get("items") if isinstance(data, dict) else None
         detail = items[0] if isinstance(items, list) and items else None
-        if isinstance(detail, dict):
-            text = " ".join(
-                str(detail.get(field) or "")
-                for field in ("ExternalDescriptionStr", "ExternalQualificationsStr")
-            )
-            if text.strip():
-                job.description = clean_description(text)
+        if not isinstance(detail, dict):
+            continue
+
+        text = " ".join(
+            str(detail.get(field) or "")
+            for field in ("ExternalDescriptionStr", "ExternalQualificationsStr")
+        )
+        if text.strip():
+            job.description = clean_description(text)
+
+        # the list feed only gives a date; the detail record carries the
+        # real posting timestamp
+        for field in ("ExternalPostedStartDate", "PostedStartDate", "PostedDate"):
+            precise = parse_posted_at(detail.get(field))
+            if precise is not None:
+                job.posted_at = precise
+                break
