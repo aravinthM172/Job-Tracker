@@ -23,7 +23,11 @@ from ..normalize import clean_location, clean_title, normalize_company, parse_po
 from .base import DiscoveredJob, get_json
 
 API = "https://api.adzuna.com/v1/api/jobs/in/search/{page}"
-_PAGES = 3
+# Free tier is 250 calls/day. Discovery's heavy cadence is ~72 runs/day,
+# so keep this to 2 pages (<=144/day, leaving headroom). max_days_old=2
+# matches the 48h dashboard window - older hits would just be dropped.
+_PAGES = 2
+_MAX_DAYS_OLD = 2
 
 
 def _targets() -> dict[str, str]:
@@ -115,7 +119,7 @@ class AdzunaSource:
                     "where": "Bengaluru",
                     "distance": 40,
                     "sort_by": "date",
-                    "max_days_old": 4,
+                    "max_days_old": _MAX_DAYS_OLD,
                     "results_per_page": 50,
                 },
             )
