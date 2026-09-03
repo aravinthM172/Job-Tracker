@@ -136,7 +136,10 @@ docker compose up -d --build
     once TLS terminates in front); `0` disables; unset = auto from the
     request scheme.
 - Viewer accounts to share Live Jobs are added by the owner under
-  **Settings → People with access**, not via env.
+  **Settings → People with access**. For fixed demo logins, set
+  `DEMO_USERS="demo:demopass123,guest:guestpass456"` (comma-separated
+  `name:password`, password 8+ chars) — these are seeded as viewers on
+  every boot and removed when dropped from the var.
 
 Redeploy: `git pull --ff-only && docker compose up -d --build`.
 

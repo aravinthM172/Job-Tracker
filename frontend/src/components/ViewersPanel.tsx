@@ -66,7 +66,12 @@ export function ViewersPanel() {
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Viewer accounts can open the Live Jobs page and nothing else — your
         synced email is never reachable from their session. Passwords are hashed
-        and cannot be shown again, so note one down before you share it.
+        and cannot be shown again, so note one down before you share it. Fixed
+        demo logins can also be set on the server with{" "}
+        <code className="rounded bg-slate-100 px-1 text-xs dark:bg-slate-800">
+          DEMO_USERS
+        </code>
+        .
       </p>
 
       <form
@@ -131,16 +136,27 @@ export function ViewersPanel() {
                 key={user.id}
                 className="flex items-center justify-between gap-3 bg-white px-4 py-3 text-sm dark:bg-slate-900"
               >
-                <div>
+                <div className="flex items-center gap-2">
                   <span className="font-medium text-slate-800 dark:text-slate-200">
                     {user.username}
                   </span>
-                  <span className="ml-2 text-xs text-slate-400 dark:text-slate-500">
-                    added {new Date(user.created_at).toLocaleDateString()}
-                  </span>
+                  {user.is_demo ? (
+                    <span className="rounded bg-violet-100 px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-violet-700 dark:bg-violet-950/50 dark:text-violet-300">
+                      demo
+                    </span>
+                  ) : (
+                    <span className="text-xs text-slate-400 dark:text-slate-500">
+                      added {new Date(user.created_at).toLocaleDateString()}
+                    </span>
+                  )}
                 </div>
                 <button
                   onClick={() => remove(user)}
+                  title={
+                    user.is_demo
+                      ? "Managed by DEMO_USERS — removing here is temporary until the next restart"
+                      : undefined
+                  }
                   className="inline-flex items-center gap-1 rounded-md border border-slate-200 px-2 py-1 text-xs font-medium text-slate-500 hover:border-rose-300 hover:bg-rose-50 hover:text-rose-600 dark:border-slate-700 dark:hover:border-rose-800 dark:hover:bg-rose-950/40"
                 >
                   <Trash2 className="h-3.5 w-3.5" />

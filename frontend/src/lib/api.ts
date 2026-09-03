@@ -186,6 +186,7 @@ export interface ManagedUser {
   username: string;
   role: Role;
   is_disabled: boolean;
+  is_demo: boolean;
   created_at: string;
 }
 

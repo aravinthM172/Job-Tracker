@@ -46,6 +46,8 @@ class User(Base):
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
     role: Mapped[str] = mapped_column(String(20), nullable=False, default="viewer")
     is_disabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
+    # seeded from the DEMO_USERS env var rather than created by the owner
+    is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime, nullable=False, default=datetime.utcnow)
 
 
@@ -128,8 +130,65 @@ def seed_owner() -> None:
         db.close()
 
 
+def _parse_demo_env() -> dict[str, str]:
+    """DEMO_USERS="alice:pw12345678,bob:hunter2hunter" -> {name: password}.
+
+    These are shareable read-only logins for showing the Live Jobs page
+    off. They're viewer accounts like any other, just managed by the env
+    instead of the Settings UI.
+    """
+    raw = os.getenv("DEMO_USERS", "")
+    out: dict[str, str] = {}
+    for pair in raw.split(","):
+        pair = pair.strip()
+        if not pair or ":" not in pair:
+            continue
+        name, _, password = pair.partition(":")
+        name, password = name.strip(), password.strip()
+        if len(name) >= 2 and len(password) >= 8:
+            out[name] = password
+    return out
+
+
+def seed_demo_users() -> None:
+    wanted = _parse_demo_env()
+    db = SessionLocal()
+    try:
+        # env is the source of truth for demo accounts: drop any that
+        # were seeded before and are no longer listed (manual viewers,
+        # is_demo=False, are never touched here).
+        for row in db.query(User).filter(User.is_demo.is_(True)).all():
+            if row.username not in wanted:
+                db.query(AuthSession).filter(
+                    AuthSession.user_id == row.id
+                ).delete()
+                db.delete(row)
+
+        for name, password in wanted.items():
+            row = db.query(User).filter(User.username == name).first()
+            if row is None:
+                db.add(
+                    User(
+                        username=name,
+                        password_hash=hash_password(password),
+                        role="viewer",
+                        is_demo=True,
+                    )
+                )
+            elif row.role != "owner":
+                row.role = "viewer"
+                row.is_demo = True
+                row.is_disabled = False
+                if not verify_password(password, row.password_hash):
+                    row.password_hash = hash_password(password)
+        db.commit()
+    finally:
+        db.close()
+
+
 if auth_configured():
     seed_owner()
+    seed_demo_users()
 
 
 # --------------------------------------------------------------------------
@@ -329,6 +388,7 @@ def list_users(_: dict = Depends(require_owner)):
                 "username": u.username,
                 "role": u.role,
                 "is_disabled": u.is_disabled,
+                "is_demo": u.is_demo,
                 "created_at": u.created_at.isoformat(),
             }
             for u in rows

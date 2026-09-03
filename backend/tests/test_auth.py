@@ -60,6 +60,37 @@ def test_session_lifecycle():
     assert auth.resolve_session(None) is None
 
 
+def test_parse_demo_env(monkeypatch):
+    monkeypatch.setenv(
+        "DEMO_USERS", " demo:demo12345 , guest:guestpw99 ,bad:short, nocolon "
+    )
+    parsed = auth._parse_demo_env()
+    assert parsed == {"demo": "demo12345", "guest": "guestpw99"}
+
+
+def test_seed_demo_users_adds_and_prunes(monkeypatch):
+    monkeypatch.setenv("DEMO_USERS", "demoA:demopass111,demoB:demopass222")
+    auth.seed_demo_users()
+    db = auth.SessionLocal()
+    try:
+        names = {u.username for u in db.query(auth.User).filter(auth.User.is_demo.is_(True))}
+        assert names == {"demoA", "demoB"}
+    finally:
+        db.close()
+
+    # drop demoB from the env -> it should be pruned, demoA kept
+    monkeypatch.setenv("DEMO_USERS", "demoA:demopass111")
+    auth.seed_demo_users()
+    db = auth.SessionLocal()
+    try:
+        names = {u.username for u in db.query(auth.User).filter(auth.User.is_demo.is_(True))}
+        assert names == {"demoA"}
+    finally:
+        db.close()
+    monkeypatch.delenv("DEMO_USERS", raising=False)
+    auth.seed_demo_users()
+
+
 def test_throttle_trips_and_resets():
     auth._failures.clear()
     ip = "203.0.113.9"
@@ -92,6 +123,7 @@ def server():
         "OWNER_USERNAME": OWNER[0],
         "OWNER_PASSWORD": OWNER[1],
         "COOKIE_SECURE": "0",
+        "DEMO_USERS": "demoguest:demoguest123",
     }
     proc = subprocess.Popen(
         [sys.executable, "-m", "uvicorn", "main:app", "--port", str(port)],
@@ -185,6 +217,13 @@ def test_viewer_cannot_create_users(server, viewer_session):
         timeout=5,
     )
     assert r.status_code == 403
+
+
+def test_demo_user_from_env_can_sign_in_as_viewer(server):
+    s = _login(server, "demoguest", "demoguest123")
+    assert s.get(f"{server}/api/auth/me", timeout=5).json()["role"] == "viewer"
+    assert s.get(f"{server}/api/live-jobs", timeout=5).status_code == 200
+    assert s.get(f"{server}/dashboard", timeout=5).status_code == 403
 
 
 def test_logout_invalidates_session(server):
