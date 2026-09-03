@@ -198,7 +198,7 @@ def _from_cards(html: str, base_hint: str) -> list[DiscoveredJob]:
 
 
 def _from_selector(
-    html: str, card_sel: str, loc_sel: str, base: str
+    html: str, card_sel: str, loc_sel: str, base: str, title_sel: str = ""
 ) -> list[DiscoveredJob]:
     try:
         from bs4 import BeautifulSoup
@@ -212,7 +212,8 @@ def _from_selector(
         anchor = card.find("a", href=True)
         if anchor is None:
             continue
-        title = clean_title(anchor.get_text(" "))
+        title_el = card.select_one(title_sel) if title_sel else anchor
+        title = clean_title((title_el or anchor).get_text(" "))
         if not title:
             continue
         href = anchor["href"]
@@ -256,11 +257,12 @@ def parse_jobs(html: str, token: str = "") -> list[DiscoveredJob]:
     url = parts[0]
     card_sel = parts[1] if len(parts) > 1 else ""
     loc_sel = parts[2] if len(parts) > 2 else ""
+    title_sel = parts[3] if len(parts) > 3 else ""
     base_match = re.match(r"https?://[^/]+", url)
     base = base_match.group(0) if base_match else ""
 
     if card_sel:
-        return _from_selector(html, card_sel, loc_sel, base)
+        return _from_selector(html, card_sel, loc_sel, base, title_sel)
 
     jobs = _from_json_ld(html)
     if jobs:
