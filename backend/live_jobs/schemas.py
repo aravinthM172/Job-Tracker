@@ -36,3 +36,6 @@ class LiveJobsSummary(BaseModel):
     live: int
     reposted: int
     closed: int
+    # postings first discovered in the last 60 minutes - drives the
+    # "N new" badge on the Live Jobs nav item
+    new_last_hour: int = 0

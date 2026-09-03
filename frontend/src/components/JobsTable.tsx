@@ -1,6 +1,7 @@
 import { Eye, Mail } from "lucide-react";
 import type { Job } from "../lib/api";
 import { accountLabel, formatDate, relativeTime } from "../lib/format";
+import { CompanyLogo } from "./CompanyLogo";
 import { StatusBadge } from "./StatusBadge";
 
 interface JobsTableProps {
@@ -34,7 +35,16 @@ export function JobsTable({ jobs, onSelect }: JobsTableProps) {
               <td className="px-4 py-3">
                 <StatusBadge status={job.status} />
               </td>
-              <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">{job.company}</td>
+              <td className="px-4 py-3 font-medium text-slate-900 dark:text-slate-100">
+                <span className="flex items-center gap-2.5">
+                  <CompanyLogo
+                    company={job.company}
+                    url={job.job_id}
+                    className="h-7 w-7"
+                  />
+                  <span className="truncate">{job.company}</span>
+                </span>
+              </td>
               <td className="max-w-[240px] truncate px-4 py-3 text-slate-600 dark:text-slate-400" title={job.role}>
                 {job.role}
               </td>

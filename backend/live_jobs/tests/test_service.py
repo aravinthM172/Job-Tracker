@@ -62,6 +62,19 @@ def test_summary_counts_match_list(db):
     assert summary["new"] + summary["live"] == 2
 
 
+def test_summary_new_last_hour(db):
+    fresh = add(db, external_job_id="fresh")
+    old = add(db, external_job_id="old")
+    old.first_seen_at = datetime.utcnow() - timedelta(hours=3)
+    db.commit()
+
+    summary = get_summary(db)
+
+    assert summary["total"] == 2
+    assert summary["new_last_hour"] == 1
+    assert fresh.first_seen_at >= datetime.utcnow() - timedelta(hours=1)
+
+
 def test_close_old_jobs_marks_closed(db):
     job = add(db, posted_at=datetime.utcnow() - timedelta(hours=100))
 

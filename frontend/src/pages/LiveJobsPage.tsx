@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
+import { CompanyLogo } from "../components/CompanyLogo";
+import { useSavedJobs } from "../hooks/useSavedJobs";
+import { api, API_BASE } from "../lib/api";
 import {
   BriefcaseBusiness,
   Building2,
+  Check,
   Clock,
   ExternalLink,
   MapPin,
+  Plus,
   Radio,
   RefreshCw,
   Search,
   SlidersHorizontal,
   Sparkles,
+  Star,
   X,
 } from "lucide-react";
 
@@ -44,9 +50,14 @@ interface Summary {
   live: number;
   reposted: number;
   closed: number;
+  new_last_hour: number;
 }
 
-const API_BASE = "";
+// stable per-posting key for localStorage save / added tracking
+function jobKey(job: LiveJob): string {
+  return `${job.company.toLowerCase()}::${job.external_job_id ?? job.title.toLowerCase()}`;
+}
+
 const REFRESH_MS = 20000;
 
 type StatusFilter = "ALL" | LiveJob["status"];
@@ -135,139 +146,6 @@ function normalizeLocation(loc: string | null): string {
   return loc.split(/[,/|]/)[0].trim();
 }
 
-// Careers pages usually live on an ATS host, not the employer's own
-// domain - fall back to a slug of the company name for those.
-const ATS_HOSTS = [
-  "greenhouse.io",
-  "boards.greenhouse.io",
-  "lever.co",
-  "jobs.lever.co",
-  "myworkdayjobs.com",
-  "myworkdaysite.com",
-  "wd1.myworkdayjobs.com",
-  "ashbyhq.com",
-  "jobs.ashbyhq.com",
-  "smartrecruiters.com",
-  "jobs.smartrecruiters.com",
-  "oraclecloud.com",
-  "taleo.net",
-  "icims.com",
-  "successfactors.com",
-  "successfactors.eu",
-  "keka.com",
-  "darwinbox.com",
-  "darwinbox.in",
-  "mynexthire.com",
-  "adzuna.com",
-  "adzuna.in",
-  "radancy.com",
-  "avature.net",
-  "eightfold.ai",
-  "phenom.com",
-];
-
-// Company -> real domain, for the many cases where a name slug isn't the
-// domain ("Walmart Global Tech" != walmartglobaltech.com). Keyed by the
-// lower-cased company name. Anything not here falls back to the slug.
-const COMPANY_DOMAINS: Record<string, string> = {
-  "walmart global tech": "walmart.com",
-  "sap labs india": "sap.com",
-  "samsung r&d institute india": "samsung.com",
-  "bosch global software technologies": "bosch.com",
-  "kpmg global services": "kpmg.com",
-  kpmg: "kpmg.com",
-  "mercedes-benz r&d india": "mercedes-benz.com",
-  "bmw group india": "bmwgroup.com",
-  "jpmorgan chase": "jpmorganchase.com",
-  "goldman sachs": "goldmansachs.com",
-  "morgan stanley": "morganstanley.com",
-  "bank of america": "bankofamerica.com",
-  "wells fargo": "wellsfargo.com",
-  "standard chartered": "sc.com",
-  "deutsche bank": "db.com",
-  "state street": "statestreet.com",
-  "s&p global": "spglobal.com",
-  "american express": "americanexpress.com",
-  "capital one": "capitalone.com",
-  "cadence design systems": "cadence.com",
-  "motorola solutions": "motorolasolutions.com",
-  "ge vernova": "gevernova.com",
-  "volvo group": "volvogroup.com",
-  "commonwealth bank of australia": "commbank.com.au",
-  "natwest group": "natwestgroup.com",
-  "societe generale": "societegenerale.com",
-  "red hat": "redhat.com",
-  "dell technologies": "dell.com",
-  "publicis sapient": "publicissapient.com",
-  "mckinsey & company": "mckinsey.com",
-  "hashedin by deloitte": "hashedin.com",
-  "tiger analytics": "tigeranalytics.com",
-  "fractal analytics": "fractal.ai",
-  "navi technologies": "navi.com",
-  "pine labs": "pinelabs.com",
-  "cashfree payments": "cashfree.com",
-  "yellow.ai": "yellow.ai",
-  "observe.ai": "observe.ai",
-  "sarvam ai": "sarvam.ai",
-  sharechat: "sharechat.com",
-  "bank of new york": "bny.com",
-  "arm": "arm.com",
-};
-
-function companyDomain(job: LiveJob): string {
-  const mapped = COMPANY_DOMAINS[job.company.trim().toLowerCase()];
-  if (mapped) return mapped;
-
-  if (job.job_url) {
-    try {
-      const host = new URL(job.job_url).hostname.replace(/^www\./, "");
-      const isAts = ATS_HOSTS.some(
-        (ats) => host === ats || host.endsWith(`.${ats}`),
-      );
-      if (!isAts && host.includes(".")) {
-        return host.split(".").slice(-2).join(".");
-      }
-    } catch {
-      /* fall through to the name slug */
-    }
-  }
-  const slug = job.company.toLowerCase().replace(/[^a-z0-9]/g, "");
-  return slug ? `${slug}.com` : "";
-}
-
-function logoCandidates(domain: string): string[] {
-  if (!domain) return [];
-  return [
-    // square site icon, 128px - the crispest square mark that's free and
-    // keyless. (Wordmark-logo services return wide white-background
-    // images that look wrong in a 40px tile, so we stick to favicons.)
-    `https://www.google.com/s2/favicons?domain=${domain}&sz=128`,
-    `https://icons.duckduckgo.com/ip3/${domain}.ico`,
-  ];
-}
-
-function CompanyAvatar({ job }: { job: LiveJob }) {
-  const candidates = logoCandidates(companyDomain(job));
-  const [index, setIndex] = useState(0);
-  const src = candidates[index];
-
-  return (
-    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg bg-slate-100 text-xs font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
-      {job.company.slice(0, 2).toUpperCase()}
-      {src && (
-        <img
-          src={src}
-          alt=""
-          onError={() => setIndex((i) => i + 1)}
-          // white plate in light mode so pale logos read; transparent in
-          // dark mode so it blends into the tile instead of a white patch
-          className="absolute inset-0 h-full w-full bg-white object-contain p-1 dark:bg-transparent"
-        />
-      )}
-    </div>
-  );
-}
-
 function statusClass(status: LiveJob["status"]) {
   switch (status) {
     case "NEW":
@@ -342,7 +220,12 @@ export function LiveJobsPage() {
     live: 0,
     reposted: 0,
     closed: 0,
+    new_last_hour: 0,
   });
+
+  const { isSaved, isAdded, toggleSaved, markAdded, saved, savedCount } =
+    useSavedJobs();
+  const [addingKey, setAddingKey] = useState<string | null>(null);
 
   // Filters live in the URL so a search is bookmarkable and survives reload.
   const [params, setParams] = useSearchParams();
@@ -371,6 +254,26 @@ export function LiveJobsPage() {
   const setStatusFilter = (v: StatusFilter) =>
     setParam("status", v === "ALL" ? "" : v);
   const setSort = (v: SortKey) => setParam("sort", v === "newest" ? "" : v);
+  const savedOnly = params.get("saved") === "1";
+  const setSavedOnly = (v: boolean) => setParam("saved", v ? "1" : "");
+
+  async function addToApplications(job: LiveJob) {
+    const key = jobKey(job);
+    setAddingKey(key);
+    try {
+      await api.createJob({
+        company: job.company,
+        role: job.title,
+        job_id: job.job_url ?? "",
+        applied_date: new Date().toISOString(),
+      });
+      markAdded(key);
+    } catch {
+      /* surfaced by the disabled->enabled button reverting */
+    } finally {
+      setAddingKey(null);
+    }
+  }
 
   const [visible, setVisible] = useState(PAGE_SIZE);
 
@@ -438,6 +341,7 @@ export function LiveJobsPage() {
     const value = search.trim().toLowerCase();
 
     const rows = jobs.filter((job) => {
+      if (savedOnly && !saved.has(jobKey(job))) return false;
       if (statusFilter !== "ALL" && job.status !== statusFilter) return false;
       if (company && job.company !== company) return false;
       if (experience && !matchesExperienceBucket(job, experience)) return false;
@@ -461,12 +365,12 @@ export function LiveJobsPage() {
       });
     }
     return sorted;
-  }, [jobs, search, company, experience, location, statusFilter, sort]);
+  }, [jobs, search, company, experience, location, statusFilter, sort, savedOnly, saved]);
 
   // reset the page window whenever the result set changes
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [search, company, experience, location, statusFilter, sort]);
+  }, [search, company, experience, location, statusFilter, sort, savedOnly]);
 
   const shownJobs = filteredJobs.slice(0, visible);
 
@@ -670,18 +574,34 @@ export function LiveJobsPage() {
             )}
           </div>
 
-          <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-            Sort
-            <select
-              value={sort}
-              onChange={(event) => setSort(event.target.value as SortKey)}
-              className={selectClass}
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => setSavedOnly(!savedOnly)}
+              className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors ${
+                savedOnly
+                  ? "border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                  : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-400 dark:hover:bg-slate-800/60"
+              }`}
             >
-              <option value="newest">Newest posted</option>
-              <option value="oldest">Oldest posted</option>
-              <option value="company">Company A–Z</option>
-            </select>
-          </label>
+              <Star
+                className={`h-3.5 w-3.5 ${savedOnly ? "fill-amber-400 text-amber-400" : ""}`}
+              />
+              Saved{savedCount > 0 ? ` (${savedCount})` : ""}
+            </button>
+
+            <label className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+              Sort
+              <select
+                value={sort}
+                onChange={(event) => setSort(event.target.value as SortKey)}
+                className={selectClass}
+              >
+                <option value="newest">Newest posted</option>
+                <option value="oldest">Oldest posted</option>
+                <option value="company">Company A–Z</option>
+              </select>
+            </label>
+          </div>
         </div>
       </div>
 
@@ -730,13 +650,16 @@ export function LiveJobsPage() {
         <div className="space-y-3">
           {shownJobs.map((job) => {
             const expLabel = experienceLabel(job);
+            const key = jobKey(job);
+            const saved = isSaved(key);
+            const added = isAdded(key);
             return (
               <div
                 key={job.id}
                 className="flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-shadow hover:shadow-md lg:flex-row lg:items-center lg:justify-between"
               >
                 <div className="flex min-w-0 gap-4">
-                  <CompanyAvatar job={job} />
+                  <CompanyLogo company={job.company} url={job.job_url} />
 
                   <div className="min-w-0">
                     <div className="flex flex-wrap items-center gap-2">
@@ -797,17 +720,59 @@ export function LiveJobsPage() {
                   </div>
                 </div>
 
-                {job.job_url && (
-                  <a
-                    href={job.job_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex shrink-0 items-center justify-center gap-2 self-start rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300 lg:self-auto"
+                <div className="flex shrink-0 items-center gap-2 self-start lg:self-auto">
+                  <button
+                    onClick={() => toggleSaved(key)}
+                    title={saved ? "Remove bookmark" : "Save this job"}
+                    aria-pressed={saved}
+                    className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border transition-colors ${
+                      saved
+                        ? "border-amber-300 bg-amber-50 text-amber-500 dark:border-amber-800 dark:bg-amber-950/40"
+                        : "border-slate-200 text-slate-400 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/60"
+                    }`}
                   >
-                    View Job
-                    <ExternalLink className="h-3.5 w-3.5" />
-                  </a>
-                )}
+                    <Star className={`h-4 w-4 ${saved ? "fill-amber-400" : ""}`} />
+                  </button>
+
+                  <button
+                    onClick={() => !added && addToApplications(job)}
+                    disabled={added || addingKey === key}
+                    title={
+                      added
+                        ? "Already in your Applications"
+                        : "Add to Applications as 'applied'"
+                    }
+                    className={`inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-2 text-xs font-medium transition-colors ${
+                      added
+                        ? "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300"
+                        : "border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-60 dark:border-slate-800 dark:text-slate-400 dark:hover:bg-slate-800/60"
+                    }`}
+                  >
+                    {added ? (
+                      <>
+                        <Check className="h-3.5 w-3.5" />
+                        Added
+                      </>
+                    ) : (
+                      <>
+                        <Plus className="h-3.5 w-3.5" />
+                        {addingKey === key ? "Adding…" : "Track"}
+                      </>
+                    )}
+                  </button>
+
+                  {job.job_url && (
+                    <a
+                      href={job.job_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="inline-flex items-center justify-center gap-2 rounded-lg bg-slate-900 px-3 py-2 text-xs font-medium text-white hover:bg-slate-700 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-300"
+                    >
+                      View Job
+                      <ExternalLink className="h-3.5 w-3.5" />
+                    </a>
+                  )}
+                </div>
               </div>
             );
           })}

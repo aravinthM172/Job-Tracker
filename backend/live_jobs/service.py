@@ -231,6 +231,11 @@ def get_summary(db: Session, *, only_targets: bool = False) -> dict[str, int]:
 
     summary = {"total": len(jobs), "new": 0, "live": 0, "reposted": 0, "closed": 0}
 
+    hour_ago = utcnow() - timedelta(hours=1)
+    summary["new_last_hour"] = sum(
+        1 for job in jobs if job.first_seen_at and job.first_seen_at >= hour_ago
+    )
+
     for job in jobs:
         summary[calculate_status(job).lower()] += 1
 

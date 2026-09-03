@@ -21,7 +21,9 @@ Two things in one app:
     inside the existing 5-minute auto-sync loop, no extra thread.
 - `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS 4 dashboard.
   Applications view, Live Jobs view, manual sync, light/dark theme
-  (toggle in the top bar, remembered in `localStorage`).
+  (toggle in the top bar, remembered in `localStorage`), a pipeline
+  funnel on the dashboard, and a `Cmd/Ctrl+K` palette to jump to a
+  page or company.
 
 ## Live Jobs
 
@@ -53,6 +55,10 @@ Two things in one app:
   country, empty to disable).
 - **Window** — the page shows the last 48 hours; a not-seen sweep marks
   postings `CLOSED` once they drop off their feed.
+- **Save / track** — ⭐ bookmarks a posting (per-browser, `localStorage`);
+  "Track" creates a real application row (status `applied`) so it flows
+  into the Applications view. The nav item shows an "N new" badge for
+  postings first seen in the last hour.
 
 ## Running locally
 

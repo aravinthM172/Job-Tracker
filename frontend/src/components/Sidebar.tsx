@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { NavLink } from "react-router-dom";
 import {
   LayoutDashboard,
@@ -10,6 +11,7 @@ import {
   Radio,
   X,
 } from "lucide-react";
+import { API_BASE } from "../lib/api";
 
 const NAV_ITEMS = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard, end: true },
@@ -26,7 +28,35 @@ interface SidebarProps {
   onClose: () => void;
 }
 
+// "N new in the last hour" badge on the Live Jobs nav item, so an
+// open tab shows when it's worth looking. Polls the lightweight
+// summary endpoint (5 ints) independently of the main data hook.
+function useNewLiveJobs() {
+  const [count, setCount] = useState(0);
+
+  useEffect(() => {
+    let alive = true;
+    const load = () =>
+      fetch(`${API_BASE}/api/live-jobs/summary`)
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => {
+          if (alive && d) setCount(d.new_last_hour ?? 0);
+        })
+        .catch(() => {});
+    load();
+    const id = setInterval(load, 60_000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+  }, []);
+
+  return count;
+}
+
 export function Sidebar({ open, onClose }: SidebarProps) {
+  const newLiveJobs = useNewLiveJobs();
+
   return (
     <>
       {open && (
@@ -75,7 +105,12 @@ export function Sidebar({ open, onClose }: SidebarProps) {
               }
             >
               <item.icon className="h-4 w-4" />
-              {item.label}
+              <span className="flex-1">{item.label}</span>
+              {item.to === "/live-jobs" && newLiveJobs > 0 && (
+                <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[10px] font-semibold leading-none text-white">
+                  {newLiveJobs > 99 ? "99+" : newLiveJobs} new
+                </span>
+              )}
             </NavLink>
           ))}
         </nav>

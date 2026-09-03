@@ -4,6 +4,7 @@ import { AlertTriangle, Loader2 } from "lucide-react";
 import { Sidebar } from "./components/Sidebar";
 import { Topbar } from "./components/Topbar";
 import { JobDetailDrawer } from "./components/JobDetailDrawer";
+import { CommandPalette } from "./components/CommandPalette";
 import { useTrackerData } from "./hooks/useTrackerData";
 import { useTheme } from "./hooks/useTheme";
 import type { DashboardSummary, Job, SyncStatusResponse } from "./lib/api";
@@ -108,6 +109,7 @@ function Layout() {
       </div>
 
       <JobDetailDrawer jobId={selectedJobId} onClose={() => setSelectedJobId(null)} />
+      <CommandPalette jobs={jobs} />
     </div>
   );
 }

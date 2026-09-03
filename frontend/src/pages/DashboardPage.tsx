@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import type { TrackerContext } from "../App";
 import { StatCard } from "../components/StatCard";
+import { PipelineFunnel } from "../components/PipelineFunnel";
 import { ApplicationsView } from "../components/ApplicationsView";
 
 export function DashboardPage() {
@@ -51,6 +52,8 @@ export function DashboardPage() {
           />
         ))}
       </div>
+
+      <PipelineFunnel summary={summary} />
 
       <div>
         <h2 className="mb-3 text-sm font-semibold text-slate-900 dark:text-slate-100">All Applications</h2>
