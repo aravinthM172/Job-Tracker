@@ -15,7 +15,6 @@ from .greenhouse import GreenhouseSource
 from .keka import KekaSource
 from .lever import LeverSource
 from .meta import MetaSource
-from .naukri import NaukriSource
 from .oracle import OracleSource
 from .phenom import PhenomSource
 from .radancy import RadancySource
@@ -39,14 +38,12 @@ HEAVY_SOURCES = {
     "phenom",
     "goldman",
     "avature",
-    "naukri",
     "adzuna",  # external quota - keep off the every-cycle path
 }
 
 # Sources behind aggressive anti-scraping (Google / Meta), or that spin
-# up a headless browser (browser / naukri). Run them on the slowest
-# cadence.
-GUARDED_SOURCES = {"google", "meta", "browser", "naukri"}
+# up a headless browser (browser). Run them on the slowest cadence.
+GUARDED_SOURCES = {"google", "meta", "browser"}
 
 # Sources whose feed carries no reliable "recently posted" signal - we
 # show every currently-open matching req and rely on the not-seen sweep
@@ -77,7 +74,6 @@ SOURCES: dict[str, JobSource] = {
         EightfoldSource(),
         SitemapSource(),
         BrowserSource(),
-        NaukriSource(),
         SuccessFactorsSource(),
     )
 }

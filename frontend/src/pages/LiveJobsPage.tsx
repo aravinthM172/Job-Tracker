@@ -114,7 +114,6 @@ const SOURCE_LABELS: Record<string, string> = {
   amazon: "Amazon Jobs",
   meta: "Meta Careers",
   google: "Google Careers",
-  naukri: "Naukri",
   eightfold: "Careers site",
   phenom: "Careers site",
   avature: "Careers site",

@@ -52,17 +52,13 @@ page — so the page can be shared without exposing synced email.
   - `browser` — headless Chromium (Playwright) for careers sites that
     render jobs only in JS. Optional; no-ops if Chromium isn't in the
     image.
-  - `naukri` — also headless-Chromium; renders a company's Naukri.com
-    Bengaluru results for ~16 high-volume India employers. Its own
-    `source`, so a Naukri hit and an ATS hit for the same role stay
-    separate rows; the Live Jobs "Source" filter isolates them.
   - `adzuna` — the one aggregator back-fill; every hit is re-checked
     against the allowlist per job.
 - **Cadence** — light feeds every cycle (~5 min); `HEAVY_SOURCES` every
-  4th cycle; `GUARDED_SOURCES` (Google, Meta, `browser`, `naukri`)
-  every 6th. `DATELESS_SOURCES` publish no post date, so the backend
-  stamps a placeholder and the UI shows "found" (discovery time)
-  instead of "posted".
+  4th cycle; `GUARDED_SOURCES` (Google, Meta, `browser`) every 6th.
+  `DATELESS_SOURCES` publish no post date, so the backend stamps a
+  placeholder and the UI shows "found" (discovery time) instead of
+  "posted".
 - **Location filter** — `LIVE_JOBS_LOCATIONS` env var (default
   `bengaluru,bangalore,bengaluroo,karnataka`; set `india` for the whole
   country, empty to disable).
