@@ -93,6 +93,23 @@ BASIC_AUTH_PASS = os.getenv("BASIC_AUTH_PASS")
 
 
 @app.middleware("http")
+async def security_headers(request: Request, call_next):
+    response = await call_next(request)
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+    response.headers.setdefault(
+        "Content-Security-Policy",
+        # the built frontend is self-hosted; it only needs its own
+        # origin plus the two favicon CDNs the Live Jobs logos use
+        "default-src 'self'; img-src 'self' data: "
+        "https://www.google.com https://icons.duckduckgo.com; "
+        "style-src 'self' 'unsafe-inline'; frame-ancestors 'none'",
+    )
+    return response
+
+
+@app.middleware("http")
 async def basic_auth(request: Request, call_next):
     if not BASIC_AUTH_USER or not BASIC_AUTH_PASS:
         return await call_next(request)
@@ -1947,13 +1964,15 @@ def microsoft_callback(request: Request):
     try:
         result = get_token(code)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        print(f"[AUTH] Outlook token exchange failed: {e}")
+        raise HTTPException(status_code=502, detail="Token exchange failed")
 
     if "access_token" not in result:
-        raise HTTPException(
-            status_code=400,
-            detail=result.get("error_description") or result.get("error") or "Login failed",
+        print(
+            "[AUTH] Outlook login failed: "
+            f"{result.get('error_description') or result.get('error')}"
         )
+        raise HTTPException(status_code=400, detail="Outlook login failed")
 
     token = result["access_token"]
 
@@ -1964,7 +1983,8 @@ def microsoft_callback(request: Request):
     )
 
     if response.status_code != 200:
-        raise HTTPException(status_code=response.status_code, detail=response.text)
+        print(f"[AUTH] Graph /me failed: {response.status_code} {response.text[:200]}")
+        raise HTTPException(status_code=502, detail="Could not read the Outlook profile")
 
     user = response.json()
 
@@ -2072,7 +2092,27 @@ def sync_status():
 # :5173 serves the frontend instead.
 # ============================================================
 
-FRONTEND_DIST = BASE_DIR.parent / "frontend" / "dist"
+FRONTEND_DIST = (BASE_DIR.parent / "frontend" / "dist").resolve()
+
+
+def resolve_frontend_asset(full_path: str) -> Path | None:
+    """Map a request path to a real file inside ``dist/``, or ``None``.
+
+    ``full_path`` is attacker-controlled and may contain ``..`` (raw or
+    percent-encoded) - only return a path that stays inside ``dist/``,
+    never one reachable by walking out of it (which would expose
+    source, /proc/self/environ, OAuth token files, ...).
+    """
+    if not full_path:
+        return None
+
+    candidate = (FRONTEND_DIST / full_path).resolve()
+
+    if candidate.is_file() and candidate.is_relative_to(FRONTEND_DIST):
+        return candidate
+
+    return None
+
 
 if FRONTEND_DIST.exists():
     from fastapi.responses import FileResponse
@@ -2083,9 +2123,9 @@ if FRONTEND_DIST.exists():
         # directly; everything else is a React Router client-side
         # route (e.g. /applications) - not a real file - so fall back
         # to index.html and let the SPA router handle it.
-        candidate = FRONTEND_DIST / full_path
+        asset = resolve_frontend_asset(full_path)
 
-        if full_path and candidate.is_file():
-            return FileResponse(candidate)
+        if asset is not None:
+            return FileResponse(asset)
 
         return FileResponse(FRONTEND_DIST / "index.html")
