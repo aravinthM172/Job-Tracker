@@ -131,6 +131,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
         ("workday", "cba/wd3/CommBank_Careers")
     ],
     "Sony": [("workday", "sonyglobal/wd1/SonyGlobalCareers")],
+    "Visa": [("workday", "visa/wd5/Visa")],
     # -- Oracle Cloud Recruiting (token = "host|site") -------------
     "KPMG Global Services": [
         ("oracle", "ejgk.fa.em2.oraclecloud.com|CX_3")
