@@ -264,3 +264,33 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     # batchexecute response is captured. See sources/google.py.
 }
 
+
+# Naukri.com, rendered with a headless browser (see sources/naukri.py).
+# High-volume India employers that post there but whose own ATS we
+# either can't reach (Google) or that list far more on Naukri. Added as
+# an *extra* source on top of any ATS feed above, so the same job may
+# appear once per source - the "naukri" source label + filter on the
+# Live Jobs page keeps them distinguishable. Kept to a short list
+# because each is a full page render on the guarded cadence.
+_NAUKRI_COMPANIES = [
+    "Google",
+    "Amazon",
+    "Microsoft",
+    "Goldman Sachs",
+    "Morgan Stanley",
+    "JPMorgan Chase",
+    "Wells Fargo",
+    "American Express",
+    "Walmart Global Tech",
+    "Flipkart",
+    "Swiggy",
+    "PhonePe",
+    "Razorpay",
+    "Uber",
+    "Adobe",
+    "Deloitte",
+]
+
+for _company in _NAUKRI_COMPANIES:
+    COMPANY_SOURCES.setdefault(_company, []).append(("naukri", _company))
+

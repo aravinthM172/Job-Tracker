@@ -114,6 +114,12 @@ const SOURCE_LABELS: Record<string, string> = {
   amazon: "Amazon Jobs",
   meta: "Meta Careers",
   google: "Google Careers",
+  naukri: "Naukri",
+  eightfold: "Careers site",
+  phenom: "Careers site",
+  avature: "Careers site",
+  goldman: "Careers site",
+  mynexthire: "Careers site",
   adzuna: "Adzuna (aggregator)",
 };
 
@@ -244,6 +250,7 @@ export function LiveJobsPage() {
   const company = params.get("company") ?? "";
   const experience = (params.get("exp") ?? "") as ExperienceKey | "";
   const location = params.get("loc") ?? "";
+  const sourceFilter = params.get("src") ?? "";
   const statusFilter = (params.get("status") ?? "ALL") as StatusFilter;
   const sort = (params.get("sort") ?? "newest") as SortKey;
 
@@ -251,6 +258,7 @@ export function LiveJobsPage() {
   const setCompany = (v: string) => setParam("company", v);
   const setExperience = (v: ExperienceKey | "") => setParam("exp", v);
   const setLocation = (v: string) => setParam("loc", v);
+  const setSourceFilter = (v: string) => setParam("src", v);
   const setStatusFilter = (v: StatusFilter) =>
     setParam("status", v === "ALL" ? "" : v);
   const setSort = (v: SortKey) => setParam("sort", v === "newest" ? "" : v);
@@ -337,6 +345,14 @@ export function LiveJobsPage() {
     [jobs],
   );
 
+  const sources = useMemo(
+    () =>
+      Array.from(new Set(jobs.map((job) => job.source))).sort((a, b) =>
+        sourceLabel(a).localeCompare(sourceLabel(b)),
+      ),
+    [jobs],
+  );
+
   const filteredJobs = useMemo(() => {
     const value = search.trim().toLowerCase();
 
@@ -344,6 +360,7 @@ export function LiveJobsPage() {
       if (savedOnly && !saved.has(jobKey(job))) return false;
       if (statusFilter !== "ALL" && job.status !== statusFilter) return false;
       if (company && job.company !== company) return false;
+      if (sourceFilter && job.source !== sourceFilter) return false;
       if (experience && !matchesExperienceBucket(job, experience)) return false;
       if (location && normalizeLocation(job.location) !== location) return false;
       if (value) {
@@ -365,12 +382,23 @@ export function LiveJobsPage() {
       });
     }
     return sorted;
-  }, [jobs, search, company, experience, location, statusFilter, sort, savedOnly, saved]);
+  }, [
+    jobs,
+    search,
+    company,
+    sourceFilter,
+    experience,
+    location,
+    statusFilter,
+    sort,
+    savedOnly,
+    saved,
+  ]);
 
   // reset the page window whenever the result set changes
   useEffect(() => {
     setVisible(PAGE_SIZE);
-  }, [search, company, experience, location, statusFilter, sort, savedOnly]);
+  }, [search, company, sourceFilter, experience, location, statusFilter, sort, savedOnly]);
 
   const shownJobs = filteredJobs.slice(0, visible);
 
@@ -396,6 +424,11 @@ export function LiveJobsPage() {
   if (statusFilter !== "ALL")
     activeFilters.push({ label: statusFilter, clear: () => setStatusFilter("ALL") });
   if (company) activeFilters.push({ label: company, clear: () => setCompany("") });
+  if (sourceFilter)
+    activeFilters.push({
+      label: `via ${sourceLabel(sourceFilter)}`,
+      clear: () => setSourceFilter(""),
+    });
   if (experience)
     activeFilters.push({
       label:
@@ -489,7 +522,7 @@ export function LiveJobsPage() {
           Filters
         </div>
 
-        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           <div className="relative sm:col-span-2 lg:col-span-1">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400 dark:text-slate-500" />
             <input
@@ -540,6 +573,19 @@ export function LiveJobsPage() {
               </option>
             ))}
           </select>
+
+          <select
+            value={sourceFilter}
+            onChange={(event) => setSourceFilter(event.target.value)}
+            className={selectClass}
+          >
+            <option value="">All sources</option>
+            {sources.map((src) => (
+              <option key={src} value={src}>
+                {sourceLabel(src)}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
@@ -562,6 +608,7 @@ export function LiveJobsPage() {
                   onClick={() => {
                     setSearch("");
                     setCompany("");
+                    setSourceFilter("");
                     setExperience("");
                     setLocation("");
                     setStatusFilter("ALL");
