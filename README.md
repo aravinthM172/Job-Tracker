@@ -11,6 +11,10 @@ Two things in one app:
    shows them on a live-updating page with status (new / live /
    reposted / closed), experience range, source, and post date.
 
+A session login gates the app. The owner sees everything; **viewer**
+accounts (created by the owner in Settings) can open only the Live Jobs
+page — so the page can be shared without exposing synced email.
+
 ## Structure
 
 - `backend/` — FastAPI + SQLAlchemy (SQLite) API.
@@ -20,10 +24,14 @@ Two things in one app:
   - `live_jobs/` — the Live Jobs subsystem (see below). Discovery runs
     inside the existing 5-minute auto-sync loop, no extra thread.
 - `frontend/` — React 19 + TypeScript + Vite + Tailwind CSS 4 dashboard.
-  Applications view, Live Jobs view, manual sync, light/dark theme
-  (toggle in the top bar, remembered in `localStorage`), a pipeline
-  funnel on the dashboard, and a `Cmd/Ctrl+K` palette to jump to a
-  page or company.
+  Login page, role-aware nav (viewers get Live Jobs only), Applications
+  view, Live Jobs view, manual sync, light/dark theme (toggle in the
+  top bar, remembered in `localStorage`), a pipeline funnel on the
+  dashboard, and a `Cmd/Ctrl+K` palette to jump to a page or company.
+- `backend/auth.py` — session login: `users` + `auth_sessions` tables,
+  scrypt password hashing, opaque httpOnly session cookies, per-IP
+  login throttle. `main.py`'s middleware 403s a viewer on anything
+  but `/api/live-jobs*`.
 
 ## Live Jobs
 
@@ -44,12 +52,17 @@ Two things in one app:
   - `browser` — headless Chromium (Playwright) for careers sites that
     render jobs only in JS. Optional; no-ops if Chromium isn't in the
     image.
+  - `naukri` — also headless-Chromium; renders a company's Naukri.com
+    Bengaluru results for ~16 high-volume India employers. Its own
+    `source`, so a Naukri hit and an ATS hit for the same role stay
+    separate rows; the Live Jobs "Source" filter isolates them.
   - `adzuna` — the one aggregator back-fill; every hit is re-checked
     against the allowlist per job.
 - **Cadence** — light feeds every cycle (~5 min); `HEAVY_SOURCES` every
-  4th cycle; `GUARDED_SOURCES` every 6th. `DATELESS_SOURCES` publish no
-  post date, so the backend stamps a placeholder and the UI shows
-  "found" (discovery time) instead of "posted".
+  4th cycle; `GUARDED_SOURCES` (Google, Meta, `browser`, `naukri`)
+  every 6th. `DATELESS_SOURCES` publish no post date, so the backend
+  stamps a placeholder and the UI shows "found" (discovery time)
+  instead of "posted".
 - **Location filter** — `LIVE_JOBS_LOCATIONS` env var (default
   `bengaluru,bangalore,bengaluroo,karnataka`; set `india` for the whole
   country, empty to disable).
@@ -80,6 +93,9 @@ Needs `backend/.env` with Outlook OAuth credentials
 `OUTLOOK_REDIRECT_URI`) and, for Gmail, per-account token files under
 `backend/tokens/`.
 
+With no `OWNER_USERNAME` / `OWNER_PASSWORD` set, login is disabled and
+the whole app is open — fine for localhost / a private tailnet.
+
 **Frontend**
 
 ```bash
@@ -108,13 +124,25 @@ docker compose up -d --build
 
 - `docker-compose.yml` builds with `LIVE_JOBS_BROWSER=1` (installs
   Playwright + Chromium, ~1 GB) and publishes port 80 → 8000.
-- `DATA_DIR=/data` is a named volume — `job_tracker.sqlite3` and the
-  OAuth token files live there and survive redeploys.
-- `backend/.env` is loaded via `env_file`. Set `BASIC_AUTH_USER` /
-  `BASIC_AUTH_PASS` to put the whole app behind HTTP Basic auth (the
-  middleware is a no-op if they're unset).
+- `DATA_DIR=/data` is a named volume — `job_tracker.sqlite3` (which
+  also holds the `users` / `auth_sessions` tables) and the OAuth token
+  files live there and survive redeploys.
+- `backend/.env` is loaded via `env_file`. Required for a public
+  deploy:
+  - `OWNER_USERNAME` / `OWNER_PASSWORD` — your login. The owner row is
+    re-seeded from these on every boot. (Legacy `BASIC_AUTH_USER` /
+    `BASIC_AUTH_PASS` still work as a fallback.)
+  - `COOKIE_SECURE` — `1` forces the session cookie `Secure` (set it
+    once TLS terminates in front); `0` disables; unset = auto from the
+    request scheme.
+- Viewer accounts to share Live Jobs are added by the owner under
+  **Settings → People with access**, not via env.
 
 Redeploy: `git pull --ff-only && docker compose up -d --build`.
+
+> **Serve this over HTTPS.** `docker-compose.yml` publishes plain HTTP
+> on port 80; put Caddy or a Cloudflare Tunnel in front so the login
+> and synced email aren't in cleartext. See the security review.
 
 ## Notes
 
