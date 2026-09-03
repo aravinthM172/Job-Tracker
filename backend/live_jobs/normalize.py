@@ -21,7 +21,14 @@ _RELATIVE = re.compile(
     r"posted\s+(today|yesterday|(\d+)\+?\s+days?\s+ago)", re.IGNORECASE
 )
 
-_DATE_FORMATS = ("%B %d, %Y", "%b %d, %Y", "%Y-%m-%d", "%m/%d/%Y", "%d %B %Y")
+_DATE_FORMATS = (
+    "%B %d, %Y",
+    "%b %d, %Y",
+    "%Y-%m-%d",
+    "%m/%d/%Y",
+    "%d %B %Y",
+    "%d %b %Y",
+)
 
 
 def clean_title(value: str | None) -> str:

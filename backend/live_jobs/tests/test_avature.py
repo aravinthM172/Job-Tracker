@@ -2,19 +2,23 @@ from live_jobs.sources import avature
 
 _HTML = """
 <html><body>
-<article class="article--result">
+<article class="article article--result">
   <div class="article__header__text">
     <h3 class="article__header__text__title">
-      <a href="/en_US/careers/JobDetail/Senior-Firmware-Engineer/59985">Senior Firmware Engineer</a>
+      <a class="link" href="https://jobsearch.harman.com/en_US/careers/JobDetail/Senior-Firmware-Engineer/59985">Senior Firmware Engineer</a>
     </h3>
     <div class="article__header__text__subtitle">
-      <span>HARMAN</span> | <span>Automotive</span> | <span>Bengaluru, Karnataka, India</span>
+      <span class="list-item-location"><strong>Location:</strong> Bengaluru, Karnataka, India</span>
+      <span class="list-item-ref"><strong>Ref #</strong> R-1</span>
+      <span class="list-item-posted"><strong>Date Posted:</strong> 31-Jul-2026</span>
     </div>
   </div>
 </article>
-<article class="article--result">
+<article class="article article--result">
   <h3><a href="/en_US/careers/JobDetail/x/60001">DSP Engineer</a></h3>
-  <div class="article__header__text__subtitle"><span>Pune, India</span></div>
+  <div class="article__header__text__subtitle">
+    <span class="list-item-location"><strong>Location:</strong> Pune, India</span>
+  </div>
 </article>
 </body></html>
 """
@@ -31,7 +35,7 @@ def test_avature_parse():
     assert j.job_url == (
         "https://jobsearch.harman.com/en_US/careers/JobDetail/Senior-Firmware-Engineer/59985"
     )
-    assert j.posted_at is None
+    assert j.posted_at is not None  # parsed from "31-Jul-2026"
 
 
 def test_avature_parse_tolerates_garbage():

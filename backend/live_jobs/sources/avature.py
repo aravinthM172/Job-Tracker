@@ -15,12 +15,15 @@ from __future__ import annotations
 
 import re
 
-from ..normalize import clean_location, clean_title
+from ..normalize import clean_location, clean_title, parse_posted_at
 from .base import DiscoveredJob, get_text
 
 _PAGE_SIZE = 20
 _MAX_PAGES = 5
 _ID = re.compile(r"/JobDetail/[^/]+/(\d+)")
+_LABEL = re.compile(r"^\s*(?:Location|Ref\s*#|Date\s*Posted)\s*:?\s*", re.IGNORECASE)
+# Avature prints "31-Jul-2026"
+_DMY = re.compile(r"\b(\d{1,2})[-/ ]([A-Za-z]{3,})[-/ ](\d{4})\b")
 
 
 def parse_jobs(html: str, base_url: str = "") -> list[DiscoveredJob]:
@@ -48,10 +51,23 @@ def parse_jobs(html: str, base_url: str = "") -> list[DiscoveredJob]:
         href = anchor["href"]
         job_url = href if href.startswith("http") else origin + href
 
+        loc_el = art.select_one(".list-item-location")
+        posted_el = art.select_one(".list-item-posted")
         loc = None
-        spans = art.select(".article__header__text__subtitle span")
-        if spans:
-            loc = clean_location(spans[-1].get_text(" "))
+        if loc_el is not None:
+            loc = clean_location(_LABEL.sub("", loc_el.get_text(" ")))
+        elif art.select(".article__header__text__subtitle span"):
+            loc = clean_location(
+                _LABEL.sub(
+                    "", art.select(".article__header__text__subtitle span")[0].get_text(" ")
+                )
+            )
+
+        posted_at = None
+        if posted_el is not None:
+            m = _DMY.search(posted_el.get_text(" "))
+            if m:
+                posted_at = parse_posted_at(f"{m.group(1)} {m.group(2)} {m.group(3)}")
 
         id_match = _ID.search(href)
         jobs.append(
@@ -65,7 +81,7 @@ def parse_jobs(html: str, base_url: str = "") -> list[DiscoveredJob]:
                 title=title,
                 location=loc,
                 job_url=job_url,
-                posted_at=None,  # Avature SearchJobs carries no post date
+                posted_at=posted_at,
                 source="avature",
             )
         )
