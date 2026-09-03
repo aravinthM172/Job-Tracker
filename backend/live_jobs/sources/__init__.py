@@ -3,6 +3,7 @@
 from .adzuna import AdzunaSource
 from .amazon import AmazonSource
 from .ashby import AshbySource
+from .avature import AvatureSource
 from .base import DiscoveredJob, JobSource
 from .bofa import BofaSource
 from .browser import BrowserSource
@@ -36,6 +37,7 @@ HEAVY_SOURCES = {
     "eightfold",
     "phenom",
     "goldman",
+    "avature",
     "adzuna",  # external quota - keep off the every-cycle path
 }
 
@@ -46,7 +48,7 @@ GUARDED_SOURCES = {"google", "meta", "browser"}
 # Sources whose feed carries no reliable "recently posted" signal - we
 # show every currently-open matching req and rely on the not-seen sweep
 # in close_old_jobs to retire them once they drop off the feed.
-DATELESS_SOURCES = {"mynexthire", "goldman", "meta", "google", "browser", "successfactors"}
+DATELESS_SOURCES = {"mynexthire", "goldman", "avature", "meta", "google", "browser", "successfactors"}
 
 SOURCES: dict[str, JobSource] = {
     source.name: source
@@ -55,6 +57,7 @@ SOURCES: dict[str, JobSource] = {
         GreenhouseSource(),
         LeverSource(),
         AshbySource(),
+        AvatureSource(),
         AmazonSource(),
         WorkdaySource(),
         OracleSource(),

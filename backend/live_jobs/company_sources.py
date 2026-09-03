@@ -85,6 +85,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Linear": [("ashby", "linear")],
     "OpenAI": [("ashby", "openai")],
     "Sarvam AI": [("ashby", "sarvam")],
+    "Cartesia": [("ashby", "cartesia")],
     "Benchling": [("ashby", "benchling")],
     "Nubank": [("ashby", "nubank")],
     "Temporal": [("ashby", "temporal")],
@@ -240,6 +241,14 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Cisco": [("phenom", "careers.cisco.com")],
     # -- per-company GraphQL --------------------------------------
     "Goldman Sachs": [("goldman", "")],
+    # -- Avature SearchJobs (token = full search URL w/ location facet) --
+    "Harman": [
+        (
+            "avature",
+            "https://jobsearch.harman.com/en_US/careers/SearchJobs/"
+            "?2039=%5B59985%5D&2039_format=2669",
+        )
+    ],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields

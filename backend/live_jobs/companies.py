@@ -152,6 +152,7 @@ COMPANIES = [
     "Yellow.ai",
     "Observe.AI",
     "Sarvam AI",
+    "Cartesia",
     "Hasura",
     "Toast",
 ]
