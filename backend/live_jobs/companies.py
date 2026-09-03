@@ -65,6 +65,7 @@ COMPANIES = [
     "Splunk",
     "BrowserStack",
     "Postman",
+    "HackerRank",
     "PhonePe",
     "Razorpay",
     "Groww",

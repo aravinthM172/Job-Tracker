@@ -66,6 +66,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Roku": [("greenhouse", "roku")],
     "Twitch": [("greenhouse", "twitch")],
     "Razorpay": [("greenhouse", "razorpaysoftwareprivatelimited")],
+    "HackerRank": [("greenhouse", "hackerrank")],
     # -- Lever -----------------------------------------------------
     "CRED": [("lever", "cred")],
     "Meesho": [("lever", "meesho")],
