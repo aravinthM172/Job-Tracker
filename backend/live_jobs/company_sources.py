@@ -238,6 +238,8 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Ericsson": [("eightfold", "jobs.ericsson.com|ericsson.com")],
     # -- Phenom People (token = host) -----------------------------
     "Cisco": [("phenom", "careers.cisco.com")],
+    # -- per-company GraphQL --------------------------------------
+    "Goldman Sachs": [("goldman", "")],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields
