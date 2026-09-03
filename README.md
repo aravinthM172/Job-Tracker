@@ -62,10 +62,12 @@ page — so the page can be shared without exposing synced email.
 - **Location filter** — `LIVE_JOBS_LOCATIONS` env var; the default
   covers **Bengaluru + Hyderabad** (with the spellings / state names
   each ATS uses). Set `india` for the whole country, empty to disable.
-  The Live Jobs page has a multi-select location chip row (the tracked
-  metros + Remote / Hybrid); pick any combination. A posting listed in
-  more than one city matches any of them and is labelled e.g.
-  "Hyderabad · also Bengaluru".
+  The Live Jobs page's location filter is a chip row grouped to the
+  metro — one "Bengaluru" (covers Karnataka / BLR / …), one "Hyderabad"
+  (covers Telangana / Secunderabad / …), plus Remote / Hybrid; pick any
+  combination. Each job card still shows the *specific* place the feed
+  gave (tidied — country tail and ATS prefixes dropped, very long
+  "building, floor, area, city" strings trimmed to "area, city").
 - **Window** — the page shows the last 48 hours; a not-seen sweep marks
   postings `CLOSED` once they drop off their feed.
 - **Save / track** — ⭐ bookmarks a posting (per-browser, `localStorage`);

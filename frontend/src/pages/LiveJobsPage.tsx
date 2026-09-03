@@ -172,22 +172,49 @@ function normalizeLocation(loc: string | null): string {
   return loc.split(/[,/|]/)[0].trim();
 }
 
-// what the job matches for the location filter
+// what the job matches for the location filter (grouped: everything in
+// the Bengaluru / Hyderabad orbit collapses to that one key)
 function locationKeys(loc: string | null): string[] {
   const metros = jobMetros(loc);
   return metros.length ? metros : [normalizeLocation(loc)];
 }
 
-// card label - every metro, with any filtered ones leading
-function locationDisplay(loc: string | null, selected: string[]): string {
-  const metros = jobMetros(loc);
-  if (metros.length === 0) return normalizeLocation(loc);
-  const lead = metros.filter((m) => selected.includes(m));
-  const rest = metros.filter((m) => !selected.includes(m));
-  const ordered = lead.length ? [...lead, ...rest] : metros;
-  return ordered.length > 1
-    ? `${ordered[0]} · also ${ordered.slice(1).join(", ")}`
-    : ordered[0];
+// the card shows the *specific* place the feed gave, just tidied up -
+// drop the country tail, ATS region prefixes like "IN-KA-", stray \r,
+// and split multi-city strings onto " · ".
+function prettyLocation(loc: string | null): string {
+  if (!loc || !loc.trim()) return "Not specified";
+  const t = loc.toLowerCase();
+  if (t.includes("remote")) return "Remote";
+  if (t.includes("hybrid")) return "Hybrid";
+
+  const parts = loc
+    .split(/\s*[;|]\s*|\s+\/\s+/)
+    .map((part) => {
+      let p = part
+        .replace(/[\r\n]+/g, " ")
+        .replace(/^\s*[A-Z]{2}-(?:[A-Z]{2}-)?/, "") // "IN-KA-Bangalore", "IN-Bangalore-.."
+        .replace(/-[A-Z0-9]{2,6}$/, "") // trailing site/building code
+        .replace(/,?\s*(India|Ind|IN|USA?|United States)\s*$/i, "")
+        .replace(/\s{2,}/g, " ")
+        .trim();
+      // long "building, floor, area, city" strings -> keep the last
+      // "area, city" so the row stays readable but still specific
+      if (p.length > 42 && p.includes(",")) {
+        p = p.split(",").slice(-2).join(",").trim();
+      }
+      return p;
+    })
+    .filter(Boolean);
+
+  const seen = new Set<string>();
+  const uniq = parts.filter((p) => {
+    const k = p.toLowerCase();
+    if (seen.has(k)) return false;
+    seen.add(k);
+    return true;
+  });
+  return uniq.join(" · ") || "Not specified";
 }
 
 function statusClass(status: LiveJob["status"]) {
@@ -815,7 +842,7 @@ export function LiveJobsPage() {
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {locationDisplay(job.location, selectedLocations)}
+                        {prettyLocation(job.location)}
                       </span>
                       {expLabel && (
                         <span className="inline-flex items-center gap-1">
