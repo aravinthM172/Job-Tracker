@@ -6,7 +6,7 @@ _PAYLOAD = {
             "totalCount": 1014,
             "items": [
                 {
-                    "roleId": 182120,
+                    "roleId": "182120_GS_MID_CAREER",
                     "jobTitle": "Global Banking & Markets - Software Engineer",
                     "jobFunction": "Engineering",
                     "division": "GBM",
@@ -31,8 +31,9 @@ def test_goldman_parse():
     assert len(jobs) == 1
     j = jobs[0]
     assert j.source == "goldman"
-    assert j.external_job_id == "182120"
+    assert j.external_job_id == "182120_GS_MID_CAREER"
     assert j.location == "Bengaluru, Karnataka, India"
+    # the detail page only accepts the numeric req id
     assert j.job_url == "https://higher.gs.com/roles/182120"
     assert j.posted_at is None
 

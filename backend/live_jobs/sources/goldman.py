@@ -10,11 +10,15 @@ few pages (sorted POSTED_DATE desc) and the not-seen sweep retires them.
 
 from __future__ import annotations
 
+import re
+
 from ..normalize import clean_location, clean_title
 from .base import DiscoveredJob, get_json
 
 URL = "https://api-higher.gs.com/gateway/api/v1/graphql"
-VIEW = "https://higher.gs.com/roles/{role_id}"
+# The detail page keys off the *numeric* req id only - passing the full
+# "166191_GS_MID_CAREER" roleId lands on "Oops, something went wrong".
+VIEW = "https://higher.gs.com/roles/{req_id}"
 
 _QUERY = (
     "query GetRoles($s: RoleSearchQueryInput!) { roleSearch(searchQueryInput: $s) "
@@ -73,13 +77,18 @@ def parse_jobs(payload: object) -> list[DiscoveredJob]:
         if not role_id or not title:
             continue
 
+        req_match = re.match(r"\d+", str(role_id))
+        job_url = (
+            VIEW.format(req_id=req_match.group(0)) if req_match else None
+        )
+
         jobs.append(
             DiscoveredJob(
                 company="",
                 external_job_id=str(role_id),
                 title=title,
                 location=loc,
-                job_url=VIEW.format(role_id=role_id),
+                job_url=job_url,
                 posted_at=None,  # schema has no date - DATELESS
                 source="goldman",
             )
