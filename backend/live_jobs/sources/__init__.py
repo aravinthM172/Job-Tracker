@@ -19,7 +19,7 @@ from .radancy import RadancySource
 from .sitemap import SitemapSource
 from .smartrecruiters import SmartRecruitersSource
 from .successfactors import SuccessFactorsSource
-from .swiggy import SwiggySource
+from .mynexthire import MyNextHireSource
 from .workday import WorkdaySource
 
 # Sources that pull large boards / need multiple requests - discovery
@@ -44,7 +44,7 @@ GUARDED_SOURCES = {"google", "meta", "browser"}
 # Sources whose feed carries no reliable "recently posted" signal - we
 # show every currently-open matching req and rely on the not-seen sweep
 # in close_old_jobs to retire them once they drop off the feed.
-DATELESS_SOURCES = {"swiggy", "meta", "google", "browser", "successfactors"}
+DATELESS_SOURCES = {"mynexthire", "meta", "google", "browser", "successfactors"}
 
 SOURCES: dict[str, JobSource] = {
     source.name: source
@@ -58,7 +58,7 @@ SOURCES: dict[str, JobSource] = {
         OracleSource(),
         SmartRecruitersSource(),
         RadancySource(),
-        SwiggySource(),
+        MyNextHireSource(),
         MetaSource(),
         PhenomSource(),
         GoogleSource(),

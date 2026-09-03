@@ -160,7 +160,8 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Arm": [("radancy", "https://careers.arm.com")],
     # -- Per-company adapters ----------------------------------------
     "Amazon": [("amazon", "")],
-    "Swiggy": [("swiggy", "")],
+    "Swiggy": [("mynexthire", "swiggy")],
+    "ShareChat": [("mynexthire", "sharechat")],
     "Bank of America": [("bofa", "")],
     # -- Keka (token = "tenant|portalId") -------------------------
     "Jupiter": [
