@@ -148,6 +148,9 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Dell Technologies": [
         ("oracle", "enterpriseplatform.dell.com|CX_1001")
     ],
+    "Akamai": [
+        ("oracle", "fa-extu-saasfaprod1.fa.ocs.oraclecloud.com|CX_1")
+    ],
     # -- SmartRecruiters (token = company id) ----------------------
     "ServiceNow": [("smartrecruiters", "ServiceNow")],
     "Freshworks": [("smartrecruiters", "Freshworks")],
