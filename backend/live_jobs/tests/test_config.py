@@ -26,4 +26,14 @@ def test_location_filter_reads_env(monkeypatch):
     assert location_filter() == []
 
     monkeypatch.delenv("LIVE_JOBS_LOCATIONS")
-    assert "bengaluru" in location_filter()
+    frags = location_filter()
+    assert "bengaluru" in frags
+    assert "hyderabad" in frags
+
+
+def test_default_filter_keeps_both_metros(monkeypatch):
+    monkeypatch.delenv("LIVE_JOBS_LOCATIONS", raising=False)
+    frags = location_filter()
+    assert location_matches("Hyderabad, Telangana, India", frags)
+    assert location_matches("Bengaluru, Karnataka, India", frags)
+    assert not location_matches("Pune, Maharashtra, India", frags)

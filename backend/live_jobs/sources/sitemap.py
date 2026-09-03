@@ -37,7 +37,13 @@ _UA = (
     "(KHTML, like Gecko) Chrome/152.0.0.0 Safari/537.36"
 )
 _MAX_DETAIL = 50
-_METRO_HINTS = ("bengaluru", "bangalore", "bangaluru")
+_METRO_HINTS = (
+    "bengaluru",
+    "bangalore",
+    "bangaluru",
+    "hyderabad",
+    "secunderabad",
+)
 
 _URL_TAG = re.compile(
     r"<url>\s*<loc>([^<]+)</loc>(?:\s*<lastmod>([^<]+)</lastmod>)?", re.I

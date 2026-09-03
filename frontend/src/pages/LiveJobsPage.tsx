@@ -142,13 +142,53 @@ function postedText(job: LiveJob, now: number): string | null {
   return `posted ${postedDisplay(job.posted_at, now)}`;
 }
 
+// The metros discovery follows. A posting can sit in more than one
+// (some ATS feeds pack several cities into one location string), so the
+// filter matches on membership, not equality, and the card shows every
+// metro a job is in.
+const METROS: { key: string; re: RegExp }[] = [
+  {
+    key: "Bengaluru",
+    re: /bengaluru|bangalore|bengaluroo|bangaluru|\bblr\b|karnataka/i,
+  },
+  {
+    key: "Hyderabad",
+    re: /hyderabad|hyderabaad|secunderabad|telangana|\bhyd\b/i,
+  },
+];
+
+function jobMetros(loc: string | null): string[] {
+  if (!loc) return [];
+  return METROS.filter((m) => m.re.test(loc)).map((m) => m.key);
+}
+
 function normalizeLocation(loc: string | null): string {
   if (!loc || !loc.trim()) return "Not specified";
   const t = loc.toLowerCase();
   if (t.includes("remote")) return "Remote";
   if (t.includes("hybrid")) return "Hybrid";
-  if (/(bengaluru|bangalore|\bblr\b)/.test(t)) return "Bengaluru";
+  const metros = jobMetros(loc);
+  if (metros.length) return metros[0];
   return loc.split(/[,/|]/)[0].trim();
+}
+
+// what the job matches for the location filter
+function locationKeys(loc: string | null): string[] {
+  const metros = jobMetros(loc);
+  return metros.length ? metros : [normalizeLocation(loc)];
+}
+
+// card label - every metro, with the filtered one leading
+function locationDisplay(loc: string | null, selected: string): string {
+  const metros = jobMetros(loc);
+  if (metros.length === 0) return normalizeLocation(loc);
+  const ordered =
+    selected && metros.includes(selected)
+      ? [selected, ...metros.filter((m) => m !== selected)]
+      : metros;
+  return ordered.length > 1
+    ? `${ordered[0]} · also ${ordered.slice(1).join(", ")}`
+    : ordered[0];
 }
 
 function statusClass(status: LiveJob["status"]) {
@@ -336,13 +376,23 @@ export function LiveJobsPage() {
     [jobs],
   );
 
-  const locations = useMemo(
-    () =>
-      Array.from(new Set(jobs.map((job) => normalizeLocation(job.location)))).sort(
-        (a, b) => a.localeCompare(b),
-      ),
-    [jobs],
-  );
+  // Filter options: the tracked metros that actually have jobs, then
+  // Remote / Hybrid if present. Raw feed location strings ("3 Locations",
+  // a street address) are only ever used as a card label, never offered
+  // as a filter.
+  const locations = useMemo(() => {
+    const present = new Set<string>();
+    for (const job of jobs) {
+      for (const m of jobMetros(job.location)) present.add(m);
+      const n = normalizeLocation(job.location);
+      if (n === "Remote" || n === "Hybrid") present.add(n);
+    }
+    const ordered = METROS.map((m) => m.key).filter((k) => present.has(k));
+    for (const extra of ["Remote", "Hybrid"]) {
+      if (present.has(extra)) ordered.push(extra);
+    }
+    return ordered;
+  }, [jobs]);
 
   const sources = useMemo(
     () =>
@@ -361,7 +411,8 @@ export function LiveJobsPage() {
       if (company && job.company !== company) return false;
       if (sourceFilter && job.source !== sourceFilter) return false;
       if (experience && !matchesExperienceBucket(job, experience)) return false;
-      if (location && normalizeLocation(job.location) !== location) return false;
+      if (location && !locationKeys(job.location).includes(location))
+        return false;
       if (value) {
         const haystack =
           `${job.company} ${job.title} ${job.location ?? ""}`.toLowerCase();
@@ -731,7 +782,7 @@ export function LiveJobsPage() {
                       </span>
                       <span className="inline-flex items-center gap-1">
                         <MapPin className="h-3 w-3" />
-                        {normalizeLocation(job.location)}
+                        {locationDisplay(job.location, location)}
                       </span>
                       {expLabel && (
                         <span className="inline-flex items-center gap-1">

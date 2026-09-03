@@ -44,11 +44,10 @@ VIEW = "https://www.metacareers.com/jobs/{job_id}/"
 DOC_ID = "27129360303422352"
 FRIENDLY = "CareersJobSearchResultsV2DataQuery"
 
-# Meta's office names for the metro this tracker follows. The V2 query
-# caps results at ~20 with no paging, so a wider office list would just
-# crowd out the postings we care about. Widen only alongside a paginating
-# query.
-OFFICES = ["Bangalore, India"]
+# Meta's office names for the metros this tracker follows. The V2 query
+# caps results at ~20 with no paging, so the two offices share those
+# slots - widen further only alongside a paginating query.
+OFFICES = ["Bangalore, India", "Hyderabad, India"]
 
 _TIMEOUT = (5, 20)
 _BROWSER_UA = (

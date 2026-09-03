@@ -31,7 +31,7 @@ DETAIL = "https://{host}/api/pcsx/position_details"
 _PAGES = 4
 _PAGE_SIZE = 10
 _ENRICH_MAX = 12
-_LOCATION = "Bengaluru, India"
+_LOCATIONS = ("Bengaluru, India", "Hyderabad, India")
 
 
 def _positions(payload: object) -> list:
@@ -91,27 +91,34 @@ class EightfoldSource:
             return []
 
         jobs: list[DiscoveredJob] = []
+        seen: set[str] = set()
 
-        for page in range(_PAGES):
-            data = get_json(
-                SEARCH.format(host=host),
-                params={
-                    "domain": domain,
-                    "query": "",
-                    "location": _LOCATION,
-                    "start": page * _PAGE_SIZE,
-                    "num": _PAGE_SIZE,
-                    "sort_by": "timestamp",
-                },
-            )
-            batch = parse_jobs(data, token)
-            if not batch:
-                break
+        for location in _LOCATIONS:
+            for page in range(_PAGES):
+                data = get_json(
+                    SEARCH.format(host=host),
+                    params={
+                        "domain": domain,
+                        "query": "",
+                        "location": location,
+                        "start": page * _PAGE_SIZE,
+                        "num": _PAGE_SIZE,
+                        "sort_by": "timestamp",
+                    },
+                )
+                batch = parse_jobs(data, token)
+                if not batch:
+                    break
 
-            jobs.extend(batch)
+                for job in batch:
+                    key = job.external_job_id or job.job_url or job.title
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    jobs.append(job)
 
-            if all(_is_old(job.posted_at) for job in batch):
-                break
+                if all(_is_old(job.posted_at) for job in batch):
+                    break
 
         _enrich(jobs, host, domain)
         return jobs

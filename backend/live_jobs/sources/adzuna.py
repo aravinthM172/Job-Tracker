@@ -109,26 +109,33 @@ class AdzunaSource:
 
         targets = _targets()
         jobs: list[DiscoveredJob] = []
+        seen: set[str] = set()
 
-        for page in range(1, _PAGES + 1):
-            data = get_json(
-                API.format(page=page),
-                params={
-                    "app_id": app_id,
-                    "app_key": app_key,
-                    "where": "Bengaluru",
-                    "distance": 40,
-                    "sort_by": "date",
-                    "max_days_old": _MAX_DAYS_OLD,
-                    "results_per_page": 50,
-                },
-            )
-            batch = parse_jobs(data, targets)
-            page_count = (
-                len(data.get("results", [])) if isinstance(data, dict) else 0
-            )
-            jobs.extend(batch)
-            if page_count < 50:
-                break
+        for where in ("Bengaluru", "Hyderabad"):
+            for page in range(1, _PAGES + 1):
+                data = get_json(
+                    API.format(page=page),
+                    params={
+                        "app_id": app_id,
+                        "app_key": app_key,
+                        "where": where,
+                        "distance": 40,
+                        "sort_by": "date",
+                        "max_days_old": _MAX_DAYS_OLD,
+                        "results_per_page": 50,
+                    },
+                )
+                batch = parse_jobs(data, targets)
+                page_count = (
+                    len(data.get("results", [])) if isinstance(data, dict) else 0
+                )
+                for job in batch:
+                    key = job.external_job_id or job.job_url or job.title
+                    if key in seen:
+                        continue
+                    seen.add(key)
+                    jobs.append(job)
+                if page_count < 50:
+                    break
 
         return jobs

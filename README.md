@@ -7,9 +7,9 @@ Two things in one app:
    offers, rejections), matches each message to a job by company/role,
    and rolls every job up to its most advanced status.
 2. **Live Jobs** — continuously discovers fresh openings straight from
-   ~155 tracked companies' careers sites (Bengaluru by default) and
-   shows them on a live-updating page with status (new / live /
-   reposted / closed), experience range, source, and post date.
+   ~155 tracked companies' careers sites (Bengaluru + Hyderabad by
+   default) and shows them on a live-updating page with status (new /
+   live / reposted / closed), experience range, source, and post date.
 
 A session login gates the app. The owner sees everything; **viewer**
 accounts (created by the owner in Settings) can open only the Live Jobs
@@ -59,9 +59,12 @@ page — so the page can be shared without exposing synced email.
   `DATELESS_SOURCES` publish no post date, so the backend stamps a
   placeholder and the UI shows "found" (discovery time) instead of
   "posted".
-- **Location filter** — `LIVE_JOBS_LOCATIONS` env var (default
-  `bengaluru,bangalore,bengaluroo,karnataka`; set `india` for the whole
-  country, empty to disable).
+- **Location filter** — `LIVE_JOBS_LOCATIONS` env var; the default
+  covers **Bengaluru + Hyderabad** (with the spellings / state names
+  each ATS uses). Set `india` for the whole country, empty to disable.
+  The Live Jobs page's location dropdown offers just the tracked metros
+  (+ Remote / Hybrid); a posting listed in both shows under either
+  filter, labelled e.g. "Hyderabad · also Bengaluru".
 - **Window** — the page shows the last 48 hours; a not-seen sweep marks
   postings `CLOSED` once they drop off their feed.
 - **Save / track** — ⭐ bookmarks a posting (per-browser, `localStorage`);

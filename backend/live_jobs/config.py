@@ -1,11 +1,11 @@
 """Runtime config for Live Jobs discovery.
 
-The location filter keeps the dashboard focused on one metro. Override
-at deploy time without a code change:
+The location filter keeps the dashboard focused on a set of metros.
+Override at deploy time without a code change:
 
-    LIVE_JOBS_LOCATIONS="bengaluru,bangalore,karnataka"   # default
-    LIVE_JOBS_LOCATIONS="india"                           # whole country
-    LIVE_JOBS_LOCATIONS=""                                # no filter
+    LIVE_JOBS_LOCATIONS="bengaluru,hyderabad,..."   # default (below)
+    LIVE_JOBS_LOCATIONS="india"                     # whole country
+    LIVE_JOBS_LOCATIONS=""                          # no filter
 
 A posting is kept when its (lower-cased) location text contains any of
 the listed fragments. Postings whose feed gives no usable location are
@@ -16,7 +16,12 @@ from __future__ import annotations
 
 import os
 
-_DEFAULT = "bengaluru,bangalore,bengaluroo,karnataka"
+# Bengaluru + Hyderabad, with the spellings / state names / airport
+# codes the various ATS feeds use.
+_DEFAULT = (
+    "bengaluru,bangalore,bengaluroo,bangaluru,karnataka,"
+    "hyderabad,hyderabaad,secunderabad,telangana"
+)
 
 
 def location_filter() -> list[str]:
