@@ -10,6 +10,8 @@ than a shared ATS). `token` is an optional free-text query filter.
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from ..normalize import (
     clean_description,
     clean_location,
@@ -20,7 +22,7 @@ from .base import DiscoveredJob, get_json
 
 SITE = "https://www.amazon.jobs"
 URL = f"{SITE}/en/search.json"
-_PAGES = 4
+_PAGES = 6
 _PAGE_SIZE = 100
 
 
@@ -75,6 +77,10 @@ class AmazonSource:
                 "sort": "recent",
                 "result_limit": _PAGE_SIZE,
                 "offset": page * _PAGE_SIZE,
+                # without this the 400 newest reqs are ~95% non-India and
+                # only a handful of Bengaluru ones survive the location
+                # filter. country=IND -> ~2.4k India reqs, newest first.
+                "country": "IND",
             }
             if token:
                 params["base_query"] = token
@@ -87,4 +93,15 @@ class AmazonSource:
 
             jobs.extend(page_jobs)
 
+            # sort=recent is newest-first; once a whole page is out of
+            # window there's no point paging deeper.
+            if all(_is_old(job.posted_at) for job in page_jobs):
+                break
+
         return jobs
+
+
+def _is_old(posted_at: datetime | None) -> bool:
+    if posted_at is None:
+        return False  # keep undated reqs; discovery decides
+    return (datetime.utcnow() - posted_at).days > 3
