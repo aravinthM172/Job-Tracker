@@ -161,6 +161,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     # -- Per-company adapters ----------------------------------------
     "Amazon": [("amazon", "")],
     "Swiggy": [("mynexthire", "swiggy")],
+    # ShareChat + Moj are both Mohalla Tech on the one MyNextHire tenant
     "ShareChat": [("mynexthire", "sharechat")],
     "Bank of America": [("bofa", "")],
     # -- Keka (token = "tenant|portalId") -------------------------
