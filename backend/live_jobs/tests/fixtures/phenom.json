@@ -1,0 +1,31 @@
+{
+  "refineSearch": {
+    "totalHits": 276,
+    "data": {
+      "jobs": [
+        {
+          "jobId": "2020452",
+          "reqId": "2020452",
+          "title": "Software Engineer",
+          "location": "Bengaluru, Karnataka, India",
+          "cityStateCountry": "Bengaluru, Karnataka, India",
+          "city": "Bengaluru",
+          "state": "Karnataka",
+          "country": "India",
+          "postedDate": "2026-09-02T00:00:00.000+0000",
+          "dateCreated": "2026-08-24T17:47:00.396+0000",
+          "applyUrl": "https://cisco.wd5.myworkdayjobs.com/Cisco_Careers/job/Bengaluru-India/Software-Engineer_2020452-1/apply",
+          "descriptionTeaser": "Build platform services. Minimum 5 years of experience required.",
+          "department": "Engineering"
+        },
+        {
+          "jobId": "2010659",
+          "title": "Inside Account Executive",
+          "location": "Chennai, India",
+          "postedDate": "2026-05-08T00:00:00.000+0000",
+          "applyUrl": "https://cisco.wd5.myworkdayjobs.com/Cisco_Careers/job/Chennai-India/x_2010659/apply"
+        }
+      ]
+    }
+  }
+}

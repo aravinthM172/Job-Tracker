@@ -14,6 +14,7 @@ from .keka import KekaSource
 from .lever import LeverSource
 from .meta import MetaSource
 from .oracle import OracleSource
+from .phenom import PhenomSource
 from .radancy import RadancySource
 from .sitemap import SitemapSource
 from .smartrecruiters import SmartRecruitersSource
@@ -32,6 +33,7 @@ HEAVY_SOURCES = {
     "browser",
     "successfactors",
     "eightfold",
+    "phenom",
     "adzuna",  # external quota - keep off the every-cycle path
 }
 
@@ -58,6 +60,7 @@ SOURCES: dict[str, JobSource] = {
         RadancySource(),
         SwiggySource(),
         MetaSource(),
+        PhenomSource(),
         GoogleSource(),
         BofaSource(),
         KekaSource(),
