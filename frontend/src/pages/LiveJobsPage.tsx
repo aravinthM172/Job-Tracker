@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   BriefcaseBusiness,
   Building2,
@@ -12,6 +13,8 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+
+const PAGE_SIZE = 40;
 
 interface LiveJob {
   id: number;
@@ -341,12 +344,35 @@ export function LiveJobsPage() {
     closed: 0,
   });
 
-  const [search, setSearch] = useState("");
-  const [company, setCompany] = useState("");
-  const [experience, setExperience] = useState<ExperienceKey | "">("");
-  const [location, setLocation] = useState("");
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>("ALL");
-  const [sort, setSort] = useState<SortKey>("newest");
+  // Filters live in the URL so a search is bookmarkable and survives reload.
+  const [params, setParams] = useSearchParams();
+  const setParam = (key: string, val: string) =>
+    setParams(
+      (prev) => {
+        const next = new URLSearchParams(prev);
+        if (val) next.set(key, val);
+        else next.delete(key);
+        return next;
+      },
+      { replace: true },
+    );
+
+  const search = params.get("q") ?? "";
+  const company = params.get("company") ?? "";
+  const experience = (params.get("exp") ?? "") as ExperienceKey | "";
+  const location = params.get("loc") ?? "";
+  const statusFilter = (params.get("status") ?? "ALL") as StatusFilter;
+  const sort = (params.get("sort") ?? "newest") as SortKey;
+
+  const setSearch = (v: string) => setParam("q", v);
+  const setCompany = (v: string) => setParam("company", v);
+  const setExperience = (v: ExperienceKey | "") => setParam("exp", v);
+  const setLocation = (v: string) => setParam("loc", v);
+  const setStatusFilter = (v: StatusFilter) =>
+    setParam("status", v === "ALL" ? "" : v);
+  const setSort = (v: SortKey) => setParam("sort", v === "newest" ? "" : v);
+
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -436,6 +462,13 @@ export function LiveJobsPage() {
     }
     return sorted;
   }, [jobs, search, company, experience, location, statusFilter, sort]);
+
+  // reset the page window whenever the result set changes
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [search, company, experience, location, statusFilter, sort]);
+
+  const shownJobs = filteredJobs.slice(0, visible);
 
   // "Freshest" = when discovery most recently *found* a new listing.
   // posted_at is unreliable for a freshness read - many ATS feeds only
@@ -662,13 +695,24 @@ export function LiveJobsPage() {
         <span>
           {loading
             ? "Loading…"
-            : `Showing ${filteredJobs.length} of ${jobs.length}`}
+            : `Showing ${Math.min(visible, filteredJobs.length)} of ${filteredJobs.length}`}
         </span>
       </div>
 
       {loading ? (
-        <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-10 text-center text-sm text-slate-400 dark:text-slate-500">
-          Loading Live Jobs…
+        <div className="space-y-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="flex items-center gap-4 rounded-xl border border-slate-200 bg-white p-5 dark:border-slate-800 dark:bg-slate-900"
+            >
+              <div className="h-10 w-10 shrink-0 animate-pulse rounded-lg bg-slate-100 dark:bg-slate-800" />
+              <div className="flex-1 space-y-2">
+                <div className="h-3.5 w-2/5 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+                <div className="h-3 w-3/5 animate-pulse rounded bg-slate-100 dark:bg-slate-800" />
+              </div>
+            </div>
+          ))}
         </div>
       ) : filteredJobs.length === 0 ? (
         <div className="rounded-xl border border-dashed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 p-12 text-center">
@@ -684,7 +728,7 @@ export function LiveJobsPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          {filteredJobs.map((job) => {
+          {shownJobs.map((job) => {
             const expLabel = experienceLabel(job);
             return (
               <div
@@ -767,6 +811,19 @@ export function LiveJobsPage() {
               </div>
             );
           })}
+
+          {visible < filteredJobs.length && (
+            <button
+              onClick={() => setVisible((v) => v + PAGE_SIZE)}
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 text-sm font-medium text-slate-600 shadow-sm hover:bg-slate-50 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300 dark:hover:bg-slate-800/60"
+            >
+              Load {Math.min(PAGE_SIZE, filteredJobs.length - visible)} more
+              <span className="text-slate-400 dark:text-slate-500">
+                {" "}
+                · {filteredJobs.length - visible} left
+              </span>
+            </button>
+          )}
         </div>
       )}
     </div>

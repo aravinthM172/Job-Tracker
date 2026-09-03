@@ -3,6 +3,7 @@ uvicorn[standard]
 sqlalchemy
 pydantic
 python-multipart
+python-dotenv
 beautifulsoup4
 requests
 google-auth
