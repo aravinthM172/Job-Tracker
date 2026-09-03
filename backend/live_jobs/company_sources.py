@@ -219,6 +219,11 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     # attributes each hit to its own company - no-op without an API key,
     # see sources/adzuna.py). Not a real company, just a feed slot.
     "Adzuna (Bengaluru back-fill)": [("adzuna", "")],
+    # -- Eightfold "PCS X" (token = "host|domain") -----------------
+    "Microsoft": [
+        ("eightfold", "apply.careers.microsoft.com|microsoft.com")
+    ],
+    "Ericsson": [("eightfold", "jobs.ericsson.com|ericsson.com")],
     # -- Guarded (aggressive anti-scraping - slowest cadence) -------
     "Meta": [("meta", "")],
     # "Google": [("google", "")],  # adapter parked - job-array fields

@@ -7,6 +7,7 @@ from .base import DiscoveredJob, JobSource
 from .bofa import BofaSource
 from .browser import BrowserSource
 from .darwinbox import DarwinboxSource
+from .eightfold import EightfoldSource
 from .google import GoogleSource
 from .greenhouse import GreenhouseSource
 from .keka import KekaSource
@@ -30,6 +31,7 @@ HEAVY_SOURCES = {
     "sitemap",
     "browser",
     "successfactors",
+    "eightfold",
     "adzuna",  # external quota - keep off the every-cycle path
 }
 
@@ -60,6 +62,7 @@ SOURCES: dict[str, JobSource] = {
         BofaSource(),
         KekaSource(),
         DarwinboxSource(),
+        EightfoldSource(),
         SitemapSource(),
         BrowserSource(),
         SuccessFactorsSource(),

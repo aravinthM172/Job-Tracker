@@ -1,0 +1,33 @@
+{
+  "status": 200,
+  "error": null,
+  "data": {
+    "count": 133,
+    "positions": [
+      {
+        "id": 1970393556984528,
+        "displayJobId": "200053022",
+        "atsJobId": "200053022",
+        "name": "Senior Product Manager",
+        "locations": ["India, Karnataka, Bangalore"],
+        "standardizedLocations": ["Bengaluru, KA, IN"],
+        "postedTs": 1788426927,
+        "creationTs": 1788261643,
+        "department": "Product Management",
+        "workLocationOption": "onsite",
+        "positionUrl": "/careers/job/1970393556984528"
+      },
+      {
+        "id": 1970393556970001,
+        "atsJobId": "200048888",
+        "name": "Principal Software Engineer",
+        "locations": ["United States, Washington, Redmond"],
+        "postedTs": 1788400000,
+        "creationTs": 1788300000,
+        "department": "Software Engineering",
+        "positionUrl": "/careers/job/1970393556970001"
+      }
+    ]
+  },
+  "metadata": {}
+}
