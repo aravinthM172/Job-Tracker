@@ -11,6 +11,7 @@ COMPANIES = [
     "LinkedIn",
     "Databricks",
     "Rubrik",
+    "Rippling",
     "Stripe",
     "Airbnb",
     "Uber",

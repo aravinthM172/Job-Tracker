@@ -56,6 +56,14 @@ _DATE = re.compile(
     r"|\d+\+?\s+days?\s+ago|today|yesterday)",
     re.I,
 )
+# the trailing "City[, Region], Country" of an over-long location string
+_LOC_TAIL = re.compile(
+    r"([A-Z][A-Za-z.\-]+(?:[ /][A-Za-z.\-]+){0,2}),\s*"
+    r"(?:[A-Z][A-Za-z.\-]+,\s*)?"
+    r"(India|IN|USA?|United States|United Kingdom|UK|Germany|Singapore|Canada|"
+    r"Ireland|Australia|[A-Z]{2,3})\s*$"
+)
+
 # a "City, Region, Country" run that ends in a country/state token
 _LOC = re.compile(
     r"([A-Z][A-Za-z.\-]+(?:[ /][A-Za-z.\-]+){0,3},\s*"
@@ -220,7 +228,7 @@ def _from_selector(
         text = re.sub(r"\s+", " ", card.get_text(" ")).strip()
 
         location = None
-        if loc_sel:
+        if loc_sel and loc_sel != "-":
             el = card.select_one(loc_sel)
             if el is not None:
                 location = clean_location(
@@ -229,6 +237,11 @@ def _from_selector(
         if not location:
             loc_match = _LOC.search(text)
             location = clean_location(loc_match.group(1)) if loc_match else None
+        # rows that pack the location into the title element leave an
+        # over-long match - keep just the trailing "City, Country"
+        if location and len(location) > 55:
+            tail = _LOC_TAIL.search(location)
+            location = clean_location(tail.group(0)) if tail else location
         date_match = _DATE.search(text)
 
         jobs.append(

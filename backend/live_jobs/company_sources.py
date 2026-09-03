@@ -204,6 +204,13 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
             "||OrganizationIds=27600&ActiveFacetID=1269750-1267701&SearchType=6",
         )
     ],
+    "Rippling": [
+        (
+            "browser",
+            "https://www.rippling.com/en-IN/careers/open-roles"
+            "###ul.border-t li###-###a > div > span",
+        )
+    ],
     # -- SuccessFactors Career Site Builder (token = search URL) --
     "Volvo Group": [
         ("successfactors", "https://jobs.volvogroup.com/search/?q=&locationsearch=India")
