@@ -63,6 +63,28 @@ class AuthSession(Base):
 Base.metadata.create_all(bind=engine)
 
 
+def _migrate() -> None:
+    """create_all() never alters an existing table. ``is_demo`` was added
+    to ``users`` after the table already shipped, so older deployments
+    need a manual ALTER. Safe to run every boot - a duplicate-column
+    error is swallowed."""
+    from sqlalchemy import text
+
+    with engine.begin() as conn:
+        try:
+            conn.execute(
+                text(
+                    "ALTER TABLE users ADD COLUMN is_demo "
+                    "BOOLEAN NOT NULL DEFAULT 0"
+                )
+            )
+        except Exception:
+            pass
+
+
+_migrate()
+
+
 # --------------------------------------------------------------------------
 # passwords
 # --------------------------------------------------------------------------
