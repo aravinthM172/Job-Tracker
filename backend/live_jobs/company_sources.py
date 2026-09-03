@@ -215,6 +215,12 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "ANZ": [
         ("successfactors", "https://careers.anz.com/search/?q=&locationsearch=India")
     ],
+    "Deloitte": [
+        (
+            "successfactors",
+            "https://southasiacareers.deloitte.com/search/?q=&locationsearch=India",
+        )
+    ],
     "SAP Labs India": [
         ("successfactors", "https://jobs.sap.com/search/?q=&locationsearch=India")
     ],
