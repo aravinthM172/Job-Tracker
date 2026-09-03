@@ -799,7 +799,7 @@ export function LiveJobsPage() {
           </h2>
           <p className="mx-auto mt-1 max-w-md text-sm text-slate-500 dark:text-slate-400">
             {jobs.length === 0
-              ? "No Bengaluru jobs from tracked companies in the last 48 hours yet."
+              ? "No Bengaluru jobs from tracked companies in the last 3 days yet."
               : "Try widening the experience, location or company filter."}
           </p>
         </div>

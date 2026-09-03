@@ -86,7 +86,7 @@ def test_location_filter_drops_non_bangalore(run_discovery, db, monkeypatch):
 
 def test_old_job_is_skipped(run_discovery, db):
     counts = run_discovery(
-        [make_job(posted_at=datetime.utcnow() - timedelta(hours=72))]
+        [make_job(posted_at=datetime.utcnow() - timedelta(hours=96))]
     )
 
     assert counts["skipped_old"] == 1
@@ -117,7 +117,7 @@ def test_repost_detection(run_discovery, db):
 
     # job drops off the feed and ages out
     row = db.query(LiveJob).one()
-    row.posted_at = datetime.utcnow() - timedelta(hours=72)
+    row.posted_at = datetime.utcnow() - timedelta(hours=96)
     db.commit()
     assert close_old_jobs(db) == 1
 

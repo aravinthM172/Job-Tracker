@@ -1,6 +1,6 @@
 """Live Jobs persistence + status logic.
 
-The 48h window is enforced in two places on purpose:
+The 72h window is enforced in two places on purpose:
 - discovery drops old postings before they are ever written;
 - the read queries here also filter, so a job that ages out while stored
   disappears from the dashboard without needing a sweep to run first.
@@ -18,7 +18,10 @@ from sqlalchemy.orm import Session
 from .companies import is_target_company
 from .models import LiveJob
 
-LOOKBACK_HOURS = 48
+# How far back the dashboard shows postings - a rolling 3-day history.
+# A job posted within this window stays listed (as CLOSED once it drops
+# off its feed) until it ages out.
+LOOKBACK_HOURS = 72
 
 # How long a re-posted job keeps the REPOSTED badge before it settles
 # back to LIVE (the is_reposted flag / repost_count stay for the "seen
@@ -149,7 +152,7 @@ def upsert_live_job(
 
 
 def close_old_jobs(db: Session) -> int:
-    """Retire jobs that aged past the 48h window or dropped off their feed."""
+    """Retire jobs that aged past the 72h window or dropped off their feed."""
     window_cutoff = live_job_cutoff()
     seen_cutoff = utcnow() - timedelta(hours=NOT_SEEN_CLOSE_HOURS)
 

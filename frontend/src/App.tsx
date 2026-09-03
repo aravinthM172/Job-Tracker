@@ -31,7 +31,7 @@ const PAGE_META: Record<string, { title: string; subtitle: string }> = {
   "/assessments": { title: "Assessments", subtitle: "Applications with a pending or completed assessment" },
   "/rejected": { title: "Rejected", subtitle: "Applications that did not move forward" },
   "/settings": { title: "Settings", subtitle: "Accounts and access" },
-  "/live-jobs": { title: "Live Jobs", subtitle: "Fresh Bengaluru openings from tracked companies · last 48 hours" },
+  "/live-jobs": { title: "Live Jobs", subtitle: "Fresh Bengaluru openings from tracked companies · last 3 days" },
 };
 
 function OwnerLayout() {
