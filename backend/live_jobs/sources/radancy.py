@@ -129,18 +129,25 @@ class RadancySource:
     name = "radancy"
 
     def discover(self, token: str) -> list[DiscoveredJob]:
-        base = token.rstrip("/")
+        # token is the site base URL, optionally "base||k=v&k2=v2" to pin
+        # extra search params (e.g. an org id or a location facet).
+        base_part, _, extra = token.partition("||")
+        base = base_part.rstrip("/")
         if not base.startswith("http"):
             return []
+
+        pinned = dict(
+            p.split("=", 1) for p in extra.split("&") if "=" in p
+        )
 
         jobs: list[DiscoveredJob] = []
 
         for page in range(1, _PAGES + 1):
             data = get_json(
                 f"{base}/search-jobs/results",
-                params={**_PARAMS, "CurrentPage": str(page)},
+                params={**_PARAMS, **pinned, "CurrentPage": str(page)},
             )
-            batch = parse_jobs(data, token)
+            batch = parse_jobs(data, base)
             if not batch:
                 break
 

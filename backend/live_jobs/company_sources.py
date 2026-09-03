@@ -152,6 +152,7 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     "Akamai": [
         ("oracle", "fa-extu-saasfaprod1.fa.ocs.oraclecloud.com|CX_1")
     ],
+    "American Express": [("oracle", "egug.fa.us2.oraclecloud.com|CX_1")],
     # -- SmartRecruiters (token = company id) ----------------------
     "ServiceNow": [("smartrecruiters", "ServiceNow")],
     "Freshworks": [("smartrecruiters", "Freshworks")],
@@ -198,9 +199,9 @@ COMPANY_SOURCES: dict[str, list[tuple[str, str]]] = {
     ],
     "NetApp": [
         (
-            "browser",
-            "https://jobs.netapp.com/en/search-jobs/India"
-            "###tr.data-row###.jobLocation",
+            "radancy",
+            "https://careers.netapp.com"
+            "||OrganizationIds=27600&ActiveFacetID=1269750-1267701&SearchType=6",
         )
     ],
     # -- SuccessFactors Career Site Builder (token = search URL) --

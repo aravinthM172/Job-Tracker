@@ -62,6 +62,7 @@ COMPANIES = [
     "OpenText",
     "HashiCorp",
     "Akamai",
+    "NetApp",
     "Splunk",
     "BrowserStack",
     "Postman",
