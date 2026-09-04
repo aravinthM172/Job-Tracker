@@ -127,19 +127,32 @@ function sourceLabel(source: string): string {
 }
 
 // Feeds that publish no post date at all - the backend stamps a
-// placeholder so the row stays in-window, so "posted X ago" would be
-// fiction. Show the discovery time ("found") for these instead.
+// placeholder (now - 12h, refreshed every sync) so the row stays
+// in-window, so "posted X ago" would be fiction. Show the discovery
+// time ("found") for these instead, and sort them by first_seen_at.
+// Keep in sync with backend live_jobs/sources/__init__.py DATELESS_SOURCES.
 const DATELESS_SOURCES = new Set([
-  "swiggy",
-  "successfactors",
+  "mynexthire",
+  "goldman",
   "meta",
   "google",
   "browser",
+  "successfactors",
 ]);
 
 function postedText(job: LiveJob, now: number): string | null {
   if (DATELESS_SOURCES.has(job.source)) return null;
   return `posted ${postedDisplay(job.posted_at, now)}`;
+}
+
+// The timestamp a card actually shows: "found" (first_seen_at) for
+// dateless feeds, otherwise the real "posted" date. Sorting keys off
+// this so the list order matches the visible labels - a job found long
+// ago never floats to the top on the strength of a refreshed placeholder.
+function effectiveTs(job: LiveJob): number {
+  if (DATELESS_SOURCES.has(job.source)) return parseTs(job.first_seen_at);
+  const posted = parseTs(job.posted_at);
+  return Number.isNaN(posted) ? parseTs(job.first_seen_at) : posted;
 }
 
 // The metros discovery follows. A posting can sit in more than one
@@ -465,9 +478,16 @@ export function LiveJobsPage() {
       sorted.sort((a, b) => a.company.localeCompare(b.company));
     } else {
       sorted.sort((a, b) => {
-        const at = parseTs(a.posted_at) || 0;
-        const bt = parseTs(b.posted_at) || 0;
-        return sort === "newest" ? bt - at : at - bt;
+        const at = effectiveTs(a) || 0;
+        const bt = effectiveTs(b) || 0;
+        if (at !== bt) return sort === "newest" ? bt - at : at - bt;
+        // same timestamp (e.g. several date-only Workday reqs at midnight)
+        // - break the tie by discovery time, then id, so the order is
+        // stable across renders instead of shuffling.
+        const af = parseTs(a.first_seen_at) || 0;
+        const bf = parseTs(b.first_seen_at) || 0;
+        if (af !== bf) return sort === "newest" ? bf - af : af - bf;
+        return sort === "newest" ? b.id - a.id : a.id - b.id;
       });
     }
     return sorted;
@@ -753,8 +773,8 @@ export function LiveJobsPage() {
                 onChange={(event) => setSort(event.target.value as SortKey)}
                 className={selectClass}
               >
-                <option value="newest">Newest posted</option>
-                <option value="oldest">Oldest posted</option>
+                <option value="newest">Newest first</option>
+                <option value="oldest">Oldest first</option>
                 <option value="company">Company A–Z</option>
               </select>
             </label>
